@@ -1,0 +1,154 @@
+'use client'
+
+import Link from 'next/link'
+import { Download, ExternalLink } from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { formatRupees } from '@/lib/format'
+
+interface InvoiceRow {
+  id: string
+  public_id: string
+  invoice_date: string
+  invoice_number: string | null
+  total_amount: number
+  payment_status: string
+  payment_link_url: string | null
+  companies: { name: string } | { name: string }[] | null
+}
+
+interface Props {
+  invoices: InvoiceRow[]
+  total: number
+  page: number
+}
+
+const STATUS_CLASSES: Record<string, string> = {
+  paid: 'bg-green-100 text-green-700',
+  partial: 'bg-amber-100 text-amber-700',
+  unpaid: 'bg-red-100 text-red-700',
+  cancelled: 'bg-slate-100 text-slate-500',
+  sent: 'bg-blue-100 text-blue-700',
+}
+
+export function CustomerInvoiceTable({ invoices, total, page }: Props) {
+  const pageSize = 20
+  const totalPages = Math.ceil(total / pageSize)
+
+  if (invoices.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <p className="text-lg font-semibold">No invoices yet</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Invoices sent to your email address will appear here.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Business</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {invoices.map((invoice) => {
+              const businessName = Array.isArray(invoice.companies)
+                ? invoice.companies[0]?.name ?? 'Unknown'
+                : invoice.companies?.name ?? 'Unknown'
+
+              return (
+                <TableRow key={invoice.id}>
+                  <TableCell>
+                    {new Date(invoice.invoice_date).toLocaleDateString('en-IN')}
+                  </TableCell>
+                  <TableCell>{businessName}</TableCell>
+                  <TableCell>{formatRupees(invoice.total_amount)}</TableCell>
+                  <TableCell>
+                    <Badge
+                      className={
+                        STATUS_CLASSES[invoice.payment_status] ??
+                        'bg-slate-100 text-slate-500'
+                      }
+                    >
+                      {invoice.payment_status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`/invoice/${invoice.public_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                      >
+                        <Download size={16} />
+                        Download PDF
+                      </a>
+                      {invoice.payment_link_url &&
+                        invoice.payment_status !== 'paid' && (
+                          <a
+                            href={invoice.payment_link_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                          >
+                            <ExternalLink size={16} />
+                            Pay Now
+                          </a>
+                        )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            Page {page} of {totalPages}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={page <= 1} asChild>
+              <Link href={`?page=${page - 1}`} aria-label="Previous page">
+                Prev
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page * pageSize >= total}
+              asChild
+            >
+              <Link href={`?page=${page + 1}`} aria-label="Next page">
+                Next
+              </Link>
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

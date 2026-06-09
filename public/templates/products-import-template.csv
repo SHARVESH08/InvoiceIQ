@@ -1,0 +1,2 @@
+name,hsn_code,unit,purchase_price,selling_price,tax_rate,reorder_level,category,description
+Example Product,8471,pcs,100,150,18,10,Electronics,Sample product description
