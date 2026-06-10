@@ -183,26 +183,26 @@ async function fetchRoleData(
 ): Promise<OemData | DistributorData | RetailerData> {
   if (companyType === 'OEM') {
     const [revenueMtdResult, topDistributorsResult] = await Promise.all([
-      // Revenue MTD: SUM(total_amount) for current month, paid/partial only
+      // Revenue MTD: SUM(taxable_amount) for current month, paid/partial only (ex-GST net revenue)
       supabase
         .from('invoices')
-        .select('total_amount')
+        .select('taxable_amount')
         .eq('company_id', companyId)
         .in('payment_status', ['partial', 'paid'])
         .gte('invoice_date', mtdStartIST()),
-      // Top distributors: group by customer_name, sum revenue DESC LIMIT 5
+      // Top distributors: group by customer_name, sum revenue DESC LIMIT 5 (ex-GST)
       // Approximation for Phase 7 — actual distributor link in Phase 12
       supabase
         .from('invoices')
-        .select('customer_name, total_amount')
+        .select('customer_name, taxable_amount')
         .eq('company_id', companyId)
         .in('payment_status', ['partial', 'paid'])
-        .order('total_amount', { ascending: false })
+        .order('taxable_amount', { ascending: false })
         .limit(50), // fetch more, aggregate client-side
     ])
 
     const revenueMtd = (revenueMtdResult.data ?? []).reduce(
-      (sum: number, row: { total_amount: number }) => sum + Number(row.total_amount),
+      (sum: number, row: { taxable_amount: number }) => sum + Number(row.taxable_amount),
       0,
     )
 
@@ -210,7 +210,7 @@ async function fetchRoleData(
     // CR-01: only iterate topDistributorsResult — revenueMtdResult loop was wrong (double-count)
     const distMap = new Map<string, number>()
     for (const row of topDistributorsResult.data ?? []) {
-      distMap.set(row.customer_name, (distMap.get(row.customer_name) ?? 0) + Number(row.total_amount))
+      distMap.set(row.customer_name, (distMap.get(row.customer_name) ?? 0) + Number(row.taxable_amount))
     }
     const topDistributors = Array.from(distMap.entries())
       .map(([name, revenue]) => ({ name, revenue }))
