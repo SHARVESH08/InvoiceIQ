@@ -40,6 +40,22 @@ const PAYMENT_COLORS: Record<string, string> = {
   cheque: '#ec4899',
 }
 
+// Human-readable payment-mode labels (no underscores) for the legend + tooltip
+const PAYMENT_LABELS: Record<string, string> = {
+  cash: 'Cash',
+  upi: 'UPI',
+  bank_transfer: 'Bank Transfer',
+  razorpay: 'Razorpay',
+  cheque: 'Cheque',
+}
+
+function paymentLabel(mode: string): string {
+  return (
+    PAYMENT_LABELS[mode] ??
+    mode.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  )
+}
+
 export function ChartPanel({ revenueTrend, topProducts, paymentSplit }: ChartPanelProps) {
   // Truncate long product names so Y-axis labels fit (layout="vertical")
   const truncatedProducts = topProducts.map((p) => ({
@@ -167,9 +183,15 @@ export function ChartPanel({ revenueTrend, topProducts, paymentSplit }: ChartPan
                       />
                     ))}
                   </Pie>
-                  <Legend verticalAlign="bottom" />
+                  <Legend
+                    verticalAlign="bottom"
+                    formatter={(value) => paymentLabel(String(value))}
+                  />
                   <Tooltip
-                    formatter={(v) => formatRupees(Number(v ?? 0))}
+                    formatter={(v, name) => [
+                      formatRupees(Number(v ?? 0)),
+                      paymentLabel(String(name)),
+                    ]}
                     contentStyle={{
                       background: 'hsl(var(--card))',
                       border: '1px solid hsl(var(--border))',

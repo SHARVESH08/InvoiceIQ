@@ -51,8 +51,8 @@ export default async function DashboardPage() {
     nightlySummaryResult,
     roleData,
   ] = await Promise.all([
-    supabase.rpc('get_revenue_trend', { months: 12 }),
-    supabase.rpc('get_top_products', { limit: 5 }),
+    supabase.rpc('get_revenue_trend', { p_months: 12 }),
+    supabase.rpc('get_top_products', { p_limit: 5 }),
     supabase.rpc('get_payment_mode_split'),
     supabase
       .from('inventory')
