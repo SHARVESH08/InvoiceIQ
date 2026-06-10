@@ -22,6 +22,21 @@ export default async function PricingAlertsPage() {
 
   const categories = await getPricingCategories()
 
+  // Distinct, non-empty product categories for the all-products toggle + dropdown
+  const { data: productRows } = await supabase
+    .from('products')
+    .select('category')
+    .eq('company_id', companyId)
+    .not('category', 'is', null)
+
+  const productCategories = Array.from(
+    new Set(
+      (productRows ?? [])
+        .map((p) => ((p.category as string | null) ?? '').trim())
+        .filter((c) => c.length > 0)
+    )
+  ).sort()
+
   return (
     <div className="space-y-4">
       <div>
@@ -31,7 +46,7 @@ export default async function PricingAlertsPage() {
           prices differ significantly from your current prices.
         </p>
       </div>
-      <PricingAlertSettings categories={categories} />
+      <PricingAlertSettings categories={categories} productCategories={productCategories} />
     </div>
   )
 }

@@ -2,15 +2,26 @@
 
 import { useState, useTransition, type FormEvent } from 'react'
 import { toast } from 'sonner'
-import { addPricingCategory, removePricingCategory } from '@/lib/actions/pricing-alerts'
+import {
+  addPricingCategory,
+  removePricingCategory,
+  toggleAllProductCategories,
+} from '@/lib/actions/pricing-alerts'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { X } from 'lucide-react'
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
 // ─────────────────────────────────────────────────────────────────────────────
 interface PricingCategory {
   id: string
@@ -20,22 +31,34 @@ interface PricingCategory {
 
 interface PricingAlertSettingsProps {
   categories: PricingCategory[]
+  /** Distinct product categories for this company (for the all-products toggle + dropdown). */
+  productCategories: string[]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PricingAlertSettings — client component
-// PRICING-01: add/remove monitored categories for pricing alerts.
-// T-11-23: server action validates non-empty + max 100 chars.
-// T-11-24: server action verifies company_id on delete.
+// PricingAlertSettings (PRICING-01)
+// - "Monitor all my product categories" Switch — one-click enable/disable for all.
+// - Dropdown to add a single existing product category.
+// - Free-text input for a custom category.
 // ─────────────────────────────────────────────────────────────────────────────
-export function PricingAlertSettings({ categories: initialCategories }: PricingAlertSettingsProps) {
+export function PricingAlertSettings({
+  categories: initialCategories,
+  productCategories,
+}: PricingAlertSettingsProps) {
   const [localCategories, setLocalCategories] = useState<PricingCategory[]>(initialCategories)
   const [newCategory, setNewCategory] = useState('')
   const [isPending, startTransition] = useTransition()
 
-  function handleAdd(e: FormEvent) {
-    e.preventDefault()
-    const trimmed = newCategory.trim()
+  const monitoredSet = new Set(localCategories.map((c) => c.category.toLowerCase()))
+  const availableProductCategories = productCategories.filter(
+    (pc) => !monitoredSet.has(pc.toLowerCase())
+  )
+  const allProductsMonitored =
+    productCategories.length > 0 &&
+    productCategories.every((pc) => monitoredSet.has(pc.toLowerCase()))
+
+  function handleAdd(value: string) {
+    const trimmed = value.trim()
     if (!trimmed) return
 
     startTransition(async () => {
@@ -44,7 +67,12 @@ export function PricingAlertSettings({ categories: initialCategories }: PricingA
         toast.error(result.error)
         return
       }
-      setLocalCategories((prev) => [result.category, ...prev])
+      setLocalCategories((prev) => {
+        if (prev.some((c) => c.category.toLowerCase() === result.category.category.toLowerCase())) {
+          return prev
+        }
+        return [result.category, ...prev]
+      })
       setNewCategory('')
       toast.success(`"${trimmed}" added to monitoring`)
     })
@@ -62,6 +90,22 @@ export function PricingAlertSettings({ categories: initialCategories }: PricingA
     })
   }
 
+  function handleToggleAll(enabled: boolean) {
+    startTransition(async () => {
+      const result = await toggleAllProductCategories(enabled)
+      if ('error' in result) {
+        toast.error(result.error)
+        return
+      }
+      setLocalCategories(result.categories)
+      toast.success(
+        enabled
+          ? 'Monitoring enabled for all your product categories'
+          : 'Monitoring disabled for your product categories'
+      )
+    })
+  }
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -73,10 +117,33 @@ export function PricingAlertSettings({ categories: initialCategories }: PricingA
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-4">
+        {/* ── All-products toggle ─────────────────────────────────────────── */}
+        <div className="flex items-center justify-between rounded-md border p-3">
+          <div className="space-y-0.5 pr-3">
+            <Label htmlFor="monitor-all" className="text-sm font-medium">
+              Monitor all my product categories
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              {productCategories.length > 0
+                ? `Enables alerts across all ${productCategories.length} of your product ${
+                    productCategories.length === 1 ? 'category' : 'categories'
+                  }.`
+                : 'Set a category on your products first to use this.'}
+            </p>
+          </div>
+          <Switch
+            id="monitor-all"
+            checked={allProductsMonitored}
+            onCheckedChange={handleToggleAll}
+            disabled={isPending || productCategories.length === 0}
+          />
+        </div>
+
+        {/* ── Monitored list ──────────────────────────────────────────────── */}
         {localCategories.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-4">
-            No categories added yet. Add a product category to start monitoring market prices.
+          <p className="text-sm text-muted-foreground py-2">
+            No categories monitored yet. Use the toggle above, or add one below.
           </p>
         ) : (
           <ul className="space-y-2">
@@ -103,11 +170,39 @@ export function PricingAlertSettings({ categories: initialCategories }: PricingA
       </CardContent>
 
       <CardFooter className="flex flex-col items-start gap-3 pt-0 pb-4 px-6">
-        <form onSubmit={handleAdd} className="flex w-full gap-2">
+        {/* ── Dropdown: add one of your product categories ────────────────── */}
+        {availableProductCategories.length > 0 && (
+          <div className="w-full space-y-1.5">
+            <Label className="text-xs text-muted-foreground">
+              Add one of your product categories
+            </Label>
+            <Select value="" onValueChange={handleAdd} disabled={isPending}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a product category" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableProductCategories.map((pc) => (
+                  <SelectItem key={pc} value={pc}>
+                    {pc}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* ── Free-text: custom category ──────────────────────────────────── */}
+        <form
+          onSubmit={(e: FormEvent) => {
+            e.preventDefault()
+            handleAdd(newCategory)
+          }}
+          className="flex w-full gap-2"
+        >
           <Input
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            placeholder="e.g. Basmati Rice, Cooking Oil"
+            placeholder="Or add a custom category"
             disabled={isPending}
             className="flex-1"
             aria-label="New category name"
@@ -118,7 +213,7 @@ export function PricingAlertSettings({ categories: initialCategories }: PricingA
           </Button>
         </form>
         <p className="text-xs text-muted-foreground">
-          Alerts are checked weekly. You will receive email alerts when market prices deviate more
+          Alerts are checked weekly. You will receive an email when market prices deviate more
           than 10% from your product prices.
         </p>
       </CardFooter>

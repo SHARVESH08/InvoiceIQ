@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const rows = categoryRows ?? []
 
     // T-11-16: De-duplicate categories across companies to minimize Brave API calls (2,000/month limit)
-    const uniqueCategories = [...new Set(rows.map((r) => r.category as string))]
+    const uniqueCategories = Array.from(new Set(rows.map((r) => r.category as string)))
 
     const MAX_BRAVE_CALLS = 200
     const cappedCategories = uniqueCategories.slice(0, MAX_BRAVE_CALLS)

@@ -179,13 +179,20 @@ export function InventoryTable({
     router.replace(`${pathname}?${params.toString()}`)
   }
 
-  // ── Pagination ───────────────────────────────────────────────────────────
+  // ── Client-side search filter — applied BEFORE pagination so it matches
+  //    across ALL products, not just the current page (bug fix). ────────────
+  const q = searchParams.q?.toLowerCase().trim() ?? ''
+  const searchedRows = q
+    ? rows.filter((r) => r.product_name.toLowerCase().includes(q))
+    : rows
+
+  // ── Pagination (over the searched set) ─────────────────────────────────────
   const page = Math.max(1, Number(searchParams.page ?? 1))
   const pageSize = 25
-  const totalRows = rows.length
+  const totalRows = searchedRows.length
   const start = totalRows === 0 ? 0 : (page - 1) * pageSize + 1
   const end = Math.min(page * pageSize, totalRows)
-  const pagedRows = rows.slice((page - 1) * pageSize, page * pageSize)
+  const pagedRows = searchedRows.slice((page - 1) * pageSize, page * pageSize)
   const hasMore = end < totalRows
 
   function goToPage(newPage: number) {
@@ -193,12 +200,6 @@ export function InventoryTable({
     params.set('page', String(newPage))
     router.replace(`${pathname}?${params.toString()}`)
   }
-
-  // ── Client-side search filter ────────────────────────────────────────────
-  const q = searchParams.q?.toLowerCase() ?? ''
-  const filteredRows = q
-    ? pagedRows.filter((r) => r.product_name.toLowerCase().includes(q))
-    : pagedRows
 
   // ── Set Stock Level submit ───────────────────────────────────────────────
   async function onSubmit(values: SetStockLevelInput) {
@@ -331,7 +332,7 @@ export function InventoryTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRows.map((row) => (
+              {pagedRows.map((row) => (
                 <TableRow
                   key={row.product_id}
                   className="hover:bg-muted/30 cursor-pointer"
@@ -368,6 +369,16 @@ export function InventoryTable({
                   </TableCell>
                 </TableRow>
               ))}
+              {pagedRows.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center text-sm text-muted-foreground py-8"
+                  >
+                    No products match &ldquo;{q}&rdquo;.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>

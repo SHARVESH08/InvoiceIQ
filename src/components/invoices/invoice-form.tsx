@@ -40,6 +40,7 @@ import {
 import { LineItemsTable } from './line-items-table'
 import { TaxTypeBadge, type TaxType } from './tax-badge'
 import { InvoiceTotalsFooter } from './invoice-totals'
+import { AddCustomerDialog } from './add-customer-dialog'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -115,6 +116,8 @@ export function InvoiceForm({
 
   const router = useRouter()
   const [activeSubmit, setActiveSubmit] = useState<'sent' | 'draft' | null>(null)
+  // Local copy so an inline-created customer appears immediately + can be selected
+  const [customerList, setCustomerList] = useState<Customer[]>(customers)
 
   const form = useForm<InvoiceInput>({
     resolver: zodResolver(InvoiceSchema) as Resolver<InvoiceInput>,
@@ -141,7 +144,7 @@ export function InvoiceForm({
   const customerId = useWatch({ control: form.control, name: 'customer_id' })
   const docType = useWatch({ control: form.control, name: 'doc_type' })
 
-  const selectedCustomer = customers.find((c) => c.id === customerId)
+  const selectedCustomer = customerList.find((c) => c.id === customerId)
 
   const taxType: TaxType = selectedCustomer
     ? (determineTaxType(
@@ -324,23 +327,31 @@ export function InvoiceForm({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Customer</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select customer" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {customers.map((c) => (
-                              <SelectItem key={c.id} value={c.id}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select customer" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {customerList.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <AddCustomerDialog
+                            onCreated={(c) => {
+                              setCustomerList((prev) => [c, ...prev])
+                              form.setValue('customer_id', c.id, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              })
+                            }}
+                          />
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
