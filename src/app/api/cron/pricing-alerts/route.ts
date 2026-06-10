@@ -82,14 +82,16 @@ export async function POST(req: NextRequest) {
         // Compute company average price for products in this category
         const { data: productRows } = await supabase
           .from('products')
-          .select('base_price')
+          .select('selling_price')
           .eq('company_id', companyId)
           .ilike('category', `%${category}%`)
 
         const products = productRows ?? []
         if (products.length === 0) continue
 
-        const totalPrice = products.reduce((sum, p) => sum + (p.base_price ?? 0), 0)
+        // Use selling_price — base_price is the legacy column and is always 0
+        // (never written by the product form; see migration 20260607000020).
+        const totalPrice = products.reduce((sum, p) => sum + (p.selling_price ?? 0), 0)
         const companyAvg = totalPrice / products.length
 
         if (companyAvg === 0) continue
