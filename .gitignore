@@ -46,3 +46,4 @@ nul
 # project planning / tooling meta — not needed to run the app
 .planning/
 .claude/
+.superpowers/
