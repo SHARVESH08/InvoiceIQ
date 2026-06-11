@@ -1,9 +1,21 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Space_Grotesk, IBM_Plex_Mono } from 'next/font/google'
 import { Toaster } from 'sonner'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'InvoiceIQ',
@@ -16,9 +28,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`dark ${inter.className}`}>
-      <body>
-        <Toaster position="top-right" richColors />
+    <html
+      lang="en"
+      className={`dark ${spaceGrotesk.variable} ${plexMono.variable}`}
+    >
+      <body className="font-sans antialiased">
+        <Toaster position="top-right" richColors theme="dark" />
         {children}
       </body>
     </html>
