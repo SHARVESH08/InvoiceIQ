@@ -46,7 +46,8 @@ export async function POST(req: NextRequest) {
         category: (r.products?.category ?? '').trim(),
         selling_price: r.products?.selling_price ?? 0,
       }))
-      .filter((m) => m.category.length > 0 && m.selling_price > 0)
+      // product_id !== '' guards against a broken FK (null embedded product row).
+      .filter((m) => m.product_id !== '' && m.category.length > 0 && m.selling_price > 0)
 
     // One Brave call per distinct category (preserve the 200-call cap).
     const MAX_BRAVE_CALLS = 200
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
 
     const alertsByCompany = evaluateProductAlerts(monitored, marketAvgByCategory)
 
+    // alertsSent counts flagged products across all emails sent (not email count).
     let alertsSent = 0
     for (const [companyId, alerts] of alertsByCompany) {
       const { data: adminRows } = await supabase
@@ -81,10 +83,17 @@ export async function POST(req: NextRequest) {
       if (!adminEmail) continue
 
       const companyName = (adminUser.companies as { name?: string } | null)?.name ?? 'Your company'
-      const lines = alerts.map(
-        (a) =>
-          `  • ${a.name} (${a.category}): yours ₹${a.companyPrice.toFixed(2)} vs market ₹${a.marketAvg.toFixed(2)} (${a.deltaPct.toFixed(1)}% off)`,
-      )
+      // Cap the body so a company monitoring hundreds of products gets a readable email.
+      const MAX_EMAIL_LINES = 50
+      const lines = alerts
+        .slice(0, MAX_EMAIL_LINES)
+        .map(
+          (a) =>
+            `  • ${a.name} (${a.category}): yours ₹${a.companyPrice.toFixed(2)} vs market ₹${a.marketAvg.toFixed(2)} (${a.deltaPct.toFixed(1)}% off)`,
+        )
+      if (alerts.length > MAX_EMAIL_LINES) {
+        lines.push(`  … and ${alerts.length - MAX_EMAIL_LINES} more`)
+      }
 
       const { error: emailError } = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL!,
