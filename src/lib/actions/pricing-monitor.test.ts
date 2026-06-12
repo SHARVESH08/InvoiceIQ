@@ -62,6 +62,11 @@ describe('toggleProductAlert', () => {
     const res = await toggleProductAlert('p1', true)
     expect('error' in res).toBe(true)
   })
+
+  it('returns success on disable (delete path)', async () => {
+    const res = await toggleProductAlert('p1', false)
+    expect(res).toEqual({ success: true })
+  })
 })
 
 describe('toggleCategoryAlert', () => {
@@ -74,6 +79,12 @@ describe('toggleCategoryAlert', () => {
   it('enabling upserts and returns success', async () => {
     state.selectResult = { data: [{ id: 'p1' }, { id: 'p2' }], error: null }
     const res = await toggleCategoryAlert('Steel', true)
+    expect(res).toEqual({ success: true })
+  })
+
+  it('disabling deletes all category products (delete path)', async () => {
+    state.selectResult = { data: [{ id: 'p1' }, { id: 'p2' }], error: null }
+    const res = await toggleCategoryAlert('Steel', false)
     expect(res).toEqual({ success: true })
   })
 })
