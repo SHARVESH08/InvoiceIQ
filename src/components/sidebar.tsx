@@ -22,7 +22,10 @@ export function Sidebar({ userEmail, defaultCollapsed = false, ...ctx }: Sidebar
   function setExpanded(open: boolean) {
     const nextCollapsed = !open
     setCollapsed(nextCollapsed)
-    document.cookie = `${COOKIE}=${nextCollapsed ? '1' : '0'};path=/;max-age=31536000;samesite=lax`
+    // `;secure` only on HTTPS — added in production, omitted on http (dev/jsdom)
+    // so the cookie is still stored locally.
+    const secure = typeof location !== 'undefined' && location.protocol === 'https:' ? ';secure' : ''
+    document.cookie = `${COOKIE}=${nextCollapsed ? '1' : '0'};path=/;max-age=31536000;samesite=lax${secure}`
   }
 
   return (
@@ -70,7 +73,7 @@ export function Sidebar({ userEmail, defaultCollapsed = false, ...ctx }: Sidebar
           )}
         >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-semibold uppercase text-foreground">
-            {userEmail.charAt(0)}
+            {(userEmail.charAt(0) || '?').toUpperCase()}
           </span>
           {!collapsed && (
             <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{userEmail}</span>
