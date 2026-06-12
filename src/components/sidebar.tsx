@@ -60,12 +60,12 @@ export function Sidebar({ userEmail, defaultCollapsed = false, ...ctx }: Sidebar
 
       {/* Main nav (scrolls) */}
       <div className="flex-1 overflow-y-auto px-2 py-3">
-        <SidebarNav items={main} collapsed={collapsed} />
+        <SidebarNav items={main} collapsed={collapsed} ariaLabel="Primary" />
       </div>
 
       {/* Footer: settings/pricing-alerts + user + logout */}
       <div className="border-t border-border px-2 py-3">
-        <SidebarNav items={footer} collapsed={collapsed} />
+        <SidebarNav items={footer} collapsed={collapsed} ariaLabel="Account" />
         <div
           className={cn(
             'mt-3 flex items-center gap-2 px-1',

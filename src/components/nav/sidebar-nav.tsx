@@ -9,14 +9,17 @@ export function SidebarNav({
   items,
   collapsed = false,
   onNavigate,
+  ariaLabel,
 }: {
   items: NavItem[]
   collapsed?: boolean
   onNavigate?: () => void
+  /** Distinguishes multiple <nav> landmarks (e.g. "Primary" vs "Account"). */
+  ariaLabel?: string
 }) {
   const pathname = usePathname()
   return (
-    <nav className="flex flex-col gap-1">
+    <nav aria-label={ariaLabel} className="flex flex-col gap-1">
       {items.map((item) => {
         const active = isNavItemActive(item.href, item.match, pathname)
         const Icon = item.icon
@@ -25,9 +28,12 @@ export function SidebarNav({
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            // When expanded the visible label provides the accessible name;
-            // when collapsed the label text is hidden, so supply aria-label.
-            aria-label={collapsed ? item.label : undefined}
+            // When expanded the visible label provides the accessible name; when
+            // collapsed the label text (and any badge count) is hidden, so fold
+            // both into aria-label to keep the alert reachable for screen readers.
+            aria-label={
+              collapsed ? (item.badge ? `${item.label}, ${item.badge} alerts` : item.label) : undefined
+            }
             aria-current={active ? 'page' : undefined}
             title={collapsed ? item.label : undefined}
             className={cn(
