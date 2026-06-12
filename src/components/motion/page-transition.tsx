@@ -4,6 +4,11 @@ import { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { motion, useReducedMotion } from 'framer-motion'
 
+/**
+ * Page-level fade/slide on route change. Keyed on pathname, so children
+ * REMOUNT on navigation — wrap only the page slot, not persistent chrome
+ * (sidebar/header), or their state will reset between routes.
+ */
 export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const reduce = useReducedMotion()
