@@ -9,22 +9,20 @@ export function ResumeBanner({ step }: { step: number }) {
   if (dismissed) return null
   const nextStep = step + 1
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-md px-4 py-3 mb-4 flex items-center justify-between">
+    <div className="mb-4 flex items-center justify-between rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
       <div>
-        <p className="font-semibold text-amber-800 text-sm">Your setup is incomplete</p>
-        <p className="text-sm text-amber-700">
+        <p className="text-sm font-semibold text-foreground">Your setup is incomplete</p>
+        <p className="text-sm text-muted-foreground">
           Finish setting up your account to start creating invoices.{' '}
-          <Link
-            href={`/onboarding?step=${nextStep}`}
-            className="text-amber-900 underline font-medium"
-          >
+          <Link href={`/onboarding?step=${nextStep}`} className="font-medium text-primary underline">
             Continue setup →
           </Link>
         </p>
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="ml-4 text-amber-600 hover:text-amber-900"
+        aria-label="Dismiss"
+        className="ml-4 text-muted-foreground hover:text-foreground"
       >
         <X className="h-4 w-4" />
       </button>

@@ -1,9 +1,10 @@
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import NavLinks from '@/components/nav-links'
 import { getCachedLowStockCount } from '@/lib/cache/low-stock'
 import { MobileHeader } from '@/components/mobile-header'
 import { ResumeBanner } from '@/components/resume-banner'
-import { LogoutButton } from '@/components/logout-button'
+import { Sidebar } from '@/components/sidebar'
+import { PageTransition } from '@/components/motion/page-transition'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BusinessLayout
@@ -89,29 +90,29 @@ export default async function BusinessLayout({
     poPendingCount = 0
   }
 
+  const cookieStore = await cookies()
+  const defaultCollapsed = cookieStore.get('sidebar_collapsed')?.value === '1'
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <MobileHeader
-        lowStockCount={lowStockCount}
+    <div className="flex min-h-screen">
+      <Sidebar
+        userEmail={user?.email ?? ''}
         companyType={companyType}
+        lowStockCount={lowStockCount}
         poPendingCount={poPendingCount}
+        defaultCollapsed={defaultCollapsed}
       />
-      <nav className="hidden md:flex border-b px-6 h-14 items-center gap-4 shrink-0">
-        <span className="font-bold text-sm">InvoiceIQ</span>
-        <NavLinks
+      <div className="flex min-w-0 flex-1 flex-col">
+        <MobileHeader
           lowStockCount={lowStockCount}
           companyType={companyType}
           poPendingCount={poPendingCount}
         />
-        <div className="ml-auto flex items-center gap-3 text-sm">
-          <span className="text-muted-foreground">{user?.email ?? ''}</span>
-          <LogoutButton />
-        </div>
-      </nav>
-      <main className="flex-1 p-6">
-        {!onboardingCompleted && <ResumeBanner step={onboardingStep} />}
-        {children}
-      </main>
+        <main className="flex-1 p-6">
+          {!onboardingCompleted && <ResumeBanner step={onboardingStep} />}
+          <PageTransition>{children}</PageTransition>
+        </main>
+      </div>
     </div>
   )
 }
