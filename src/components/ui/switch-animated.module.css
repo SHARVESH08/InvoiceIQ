@@ -19,12 +19,13 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 136 224;
-  transition: all var(--a), 0s transform;
+  transition: stroke-dashoffset var(--a), color var(--a), 0s transform;
   transform-origin: center;
 }
 .input:checked ~ .switch { background-color: hsl(38 91% 55%); box-shadow: 0 0 0 0.5em hsl(38 91% 55%); }
 .input:checked ~ .switch svg path { stroke-dashoffset: 180; transform: scaleY(-1); color: hsl(34 62% 6%); }
 .input:focus-visible ~ .switch { outline: 2px solid hsl(38 91% 55%); outline-offset: 4px; }
+.input:disabled ~ .switch { opacity: 0.5; cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) {
   .switch, .switch svg path { transition: none; }
 }

@@ -16,7 +16,7 @@ export function SwitchAnimated({
   onCheckedChange,
   disabled,
   id,
-  ...rest
+  'aria-label': ariaLabel,
 }: SwitchAnimatedProps) {
   const reactId = useId()
   const inputId = id ?? reactId
@@ -26,11 +26,10 @@ export function SwitchAnimated({
         id={inputId}
         className={styles.input}
         type="checkbox"
-        role="checkbox"
         checked={checked}
         disabled={disabled}
         onChange={(e) => onCheckedChange(e.target.checked)}
-        aria-label={rest['aria-label']}
+        aria-label={ariaLabel}
       />
       <label className={styles.switch} htmlFor={inputId} aria-hidden="true">
         <svg viewBox="0 0 212.4992 84.4688" overflow="visible">
