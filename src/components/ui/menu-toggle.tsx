@@ -5,11 +5,14 @@ import { cn } from '@/lib/utils'
 type MenuToggleProps = React.ComponentProps<'svg'> & {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Accessible label for the toggle (screen readers). */
+  label?: string
 }
 
 export function MenuToggle({
   open,
   onOpenChange,
+  label = 'Toggle menu',
   className,
   fill = 'none',
   stroke = 'currentColor',
@@ -21,8 +24,9 @@ export function MenuToggle({
   return (
     <label className="flex cursor-pointer items-center justify-center">
       <input
-        className="hidden"
+        className="sr-only"
         type="checkbox"
+        aria-label={label}
         onChange={() => onOpenChange(!open)}
         checked={open}
       />
@@ -39,7 +43,7 @@ export function MenuToggle({
         <path
           className={cn(
             'transition-all duration-500 ease-out',
-            open ? '[stroke-dasharray:20_300] [stroke-dashoffset:-32.42px]' : '[stroke-dasharray:12_63]',
+            open ? '[stroke-dasharray:20_300] [stroke-dashoffset:-32.42px]' : '[stroke-dasharray:12_63] [stroke-dashoffset:0]',
           )}
           d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"
         />
