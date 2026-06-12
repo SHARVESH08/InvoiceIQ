@@ -58,6 +58,8 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
       href: '/dashboard/purchase-orders',
       label: 'Purchase Orders',
       icon: ShoppingCart,
+      // Badge is Distributor-only by design: it counts incoming POs (status='sent')
+      // awaiting the distributor. OEMs see the link but no pending badge.
       badge: companyType === 'Distributor' && poPendingCount > 0 ? poPendingCount : undefined,
     })
   }
