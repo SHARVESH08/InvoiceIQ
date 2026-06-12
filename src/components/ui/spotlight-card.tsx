@@ -37,7 +37,6 @@ const GlowCard: React.FC<GlowCardProps> = ({
   children, className = '', glowColor = 'gold', size = 'md', width, height, customSize = false,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null)
-  const innerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!stylesInjected) {
@@ -102,7 +101,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
       style={getInlineStyles()}
       className={`${getSizeClasses()} ${!customSize ? 'aspect-[3/4]' : ''} rounded-xl relative grid grid-rows-[1fr_auto] shadow-[0_1rem_2rem_-1rem_black] p-4 gap-4 backdrop-blur-[5px] ${className}`}
     >
-      <div ref={innerRef} data-glow></div>
+      <div data-glow></div>
       {children}
     </div>
   )
