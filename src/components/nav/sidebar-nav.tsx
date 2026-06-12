@@ -25,11 +25,13 @@ export function SidebarNav({
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            aria-label={item.label}
+            // When expanded the visible label provides the accessible name;
+            // when collapsed the label text is hidden, so supply aria-label.
+            aria-label={collapsed ? item.label : undefined}
             aria-current={active ? 'page' : undefined}
             title={collapsed ? item.label : undefined}
             className={cn(
-              'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+              'relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
               collapsed && 'justify-center px-0',
               active
                 ? 'bg-primary/10 font-medium text-primary'
@@ -45,6 +47,7 @@ export function SidebarNav({
             <Icon className="h-[18px] w-[18px] shrink-0" />
             {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
             {item.badge ? (
+              // Collapsed rail shows only a dot (count is ambient); expand to see the number.
               collapsed ? (
                 <span
                   aria-hidden
