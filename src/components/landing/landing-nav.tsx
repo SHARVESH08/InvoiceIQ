@@ -16,7 +16,13 @@ export function LandingNav() {
           <a href="#why" className="transition-colors hover:text-foreground">Why InvoiceIQ</a>
           <a href="#how" className="transition-colors hover:text-foreground">How it works</a>
         </div>
-        <div className="ml-auto flex items-center gap-2 md:ml-0">
+        <div className="ml-auto flex items-center gap-3 md:ml-0">
+          <Link
+            href="/auth/customer/login"
+            className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline"
+          >
+            View my invoices
+          </Link>
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
             <Link href="/auth/business/login">Log in</Link>
           </Button>

@@ -14,6 +14,7 @@ export function LandingFooter() {
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href="/auth/business/register" className="transition-colors hover:text-foreground">Start free</Link>
           <Link href="/auth/business/login" className="transition-colors hover:text-foreground">Log in</Link>
+          <Link href="/auth/customer/login" className="transition-colors hover:text-foreground">View my invoices</Link>
           <a href="#features" className="transition-colors hover:text-foreground">Features</a>
         </div>
       </div>
