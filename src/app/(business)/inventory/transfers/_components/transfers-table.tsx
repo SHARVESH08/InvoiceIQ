@@ -57,20 +57,20 @@ function formatDate(iso: string): string {
 function StatusBadge({ status }: { status: string }) {
   if (status === 'pending') {
     return (
-      <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100">
+      <Badge className="bg-yellow-500/15 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/15">
         Pending
       </Badge>
     )
   }
   if (status === 'approved') {
     return (
-      <Badge className="bg-green-100 text-green-800 border-green-300 hover:bg-green-100">
+      <Badge className="bg-green-500/15 text-green-400 border-green-500/30 hover:bg-green-500/15">
         Approved
       </Badge>
     )
   }
   return (
-    <Badge className="bg-red-100 text-red-800 border-red-300 hover:bg-red-100">
+    <Badge className="bg-red-500/15 text-red-400 border-red-500/30 hover:bg-red-500/15">
       Rejected
     </Badge>
   )
@@ -225,7 +225,7 @@ export function TransfersTable({
                           <div className="flex items-center justify-end gap-2">
                             <Button
                               variant="outline"
-                              className="border-green-600 text-green-700 hover:bg-green-50 h-8"
+                              className="border-green-500/30 text-green-400 hover:bg-green-500/15 h-8"
                               onClick={() => handleApprove(t.id)}
                               disabled={approvingId === t.id}
                             >
