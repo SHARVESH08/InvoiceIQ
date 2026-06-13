@@ -6,6 +6,15 @@ import { FeatureWhatsApp } from '@/components/landing/feature-whatsapp'
 import { FeaturePricing } from '@/components/landing/feature-pricing'
 import { CapabilitiesBento } from '@/components/landing/capabilities-bento'
 import { WhyDifferent } from '@/components/landing/why-different'
+import { HowItWorks } from '@/components/landing/how-it-works'
+import { FinalCta } from '@/components/landing/final-cta'
+import { LandingFooter } from '@/components/landing/landing-footer'
+
+export const metadata = {
+  title: 'InvoiceIQ: Billing that thinks for Indian business',
+  description:
+    'GST invoicing, live inventory, WhatsApp orders, and AI pricing alerts. One system for Indian SMBs.',
+}
 
 export default function LandingPage() {
   return (
@@ -19,7 +28,10 @@ export default function LandingPage() {
         <FeaturePricing />
         <CapabilitiesBento />
         <WhyDifferent />
+        <HowItWorks />
+        <FinalCta />
       </main>
+      <LandingFooter />
     </div>
   )
 }
