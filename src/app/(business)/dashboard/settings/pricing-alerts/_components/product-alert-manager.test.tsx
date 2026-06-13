@@ -40,4 +40,11 @@ describe('ProductAlertManager', () => {
     await userEvent.click(rebarSwitch)
     expect(toggleProductAlert).toHaveBeenCalledWith('a', true)
   })
+
+  it('calls toggleCategoryAlert when a category master switch is toggled', async () => {
+    render(<ProductAlertManager products={products} initialMonitoredIds={[]} />)
+    const steelMaster = screen.getByRole('checkbox', { name: /monitor all steel/i })
+    await userEvent.click(steelMaster)
+    expect(toggleCategoryAlert).toHaveBeenCalledWith('Steel', true)
+  })
 })

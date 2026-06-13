@@ -58,8 +58,11 @@ export function ProductAlertManager({
 
   function setCategory(category: string, enabled: boolean) {
     const ids = products.filter((p) => p.category === category).map((p) => p.id)
-    const prevSnapshot = new Set(monitored)
+    // Snapshot inside the functional updater so a concurrent in-flight product
+    // toggle isn't lost if this category write needs to roll back.
+    let prevSnapshot: Set<string> | null = null
     setMonitored((prev) => {
+      prevSnapshot = new Set(prev)
       const next = new Set(prev)
       for (const id of ids) {
         if (enabled) next.add(id)
@@ -71,7 +74,7 @@ export function ProductAlertManager({
       const res = await toggleCategoryAlert(category, enabled)
       if ('error' in res) {
         toast.error(res.error)
-        setMonitored(prevSnapshot)
+        if (prevSnapshot) setMonitored(prevSnapshot)
       } else {
         toast.success(enabled ? `Monitoring all of ${category}` : `Stopped monitoring ${category}`)
       }
@@ -123,7 +126,9 @@ export function ProductAlertManager({
                     checked={state === 'all'}
                     onCheckedChange={(v) => setCategory(category, v)}
                     disabled={isPending}
-                    aria-label={`Monitor all ${category}`}
+                    aria-label={
+                      state === 'all' ? `Stop monitoring all ${category}` : `Monitor all ${category}`
+                    }
                   />
                 </div>
                 <ul className="divide-y divide-border">
