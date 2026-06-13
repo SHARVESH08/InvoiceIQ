@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Space_Grotesk, IBM_Plex_Mono } from 'next/font/google'
+import { clashDisplay } from './fonts/clash-display'
 import { Toaster } from 'sonner'
 import './globals.css'
 
@@ -30,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${spaceGrotesk.variable} ${plexMono.variable}`}
+      className={`dark ${spaceGrotesk.variable} ${plexMono.variable} ${clashDisplay.variable}`}
     >
       <body className="font-sans antialiased">
         <Toaster position="top-right" richColors theme="dark" />
