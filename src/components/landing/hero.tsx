@@ -13,7 +13,7 @@ function MiniDashboard() {
       <div className="mb-3 grid grid-cols-3 gap-2">
         <div className="rounded-lg border border-primary/40 bg-background p-2.5 shadow-[0_0_30px_-12px] shadow-primary">
           <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Revenue</p>
-          <p className="font-mono text-base font-bold text-primary">Rs.4.82L</p>
+          <p className="font-mono text-base font-bold text-primary">₹4.82L</p>
         </div>
         <div className="rounded-lg border border-border bg-background p-2.5">
           <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Invoices</p>
