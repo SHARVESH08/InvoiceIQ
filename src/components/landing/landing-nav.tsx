@@ -18,7 +18,7 @@ export function LandingNav() {
         </div>
         <div className="ml-auto flex items-center gap-2 md:ml-0">
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link href="/auth/customer/login">Log in</Link>
+            <Link href="/auth/business/login">Log in</Link>
           </Button>
           <Button asChild size="sm">
             <Link href="/auth/business/register">Start free</Link>
