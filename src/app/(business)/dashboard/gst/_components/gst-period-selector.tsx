@@ -94,7 +94,7 @@ export function GstPeriodSelector({ companyId, periods, company }: GstPeriodSele
 
             {status === 'filed' && (
               <div className="flex items-end">
-                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                <span className="inline-flex items-center rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-medium text-green-400">
                   Filed
                 </span>
               </div>

@@ -355,7 +355,7 @@ export default function CreatePOPage() {
 
           {/* Confirmed distributor banner */}
           {distributorConfirmed && foundDistributor && (
-            <div className="flex items-center justify-between rounded-md border px-4 py-3 bg-green-50">
+            <div className="flex items-center justify-between rounded-md border px-4 py-3 bg-green-500/15">
               <div>
                 <p className="font-medium text-sm">{foundDistributor.name}</p>
                 <p className="text-xs text-muted-foreground">{gstin.toUpperCase()}</p>

@@ -108,15 +108,15 @@ export function Gstr2bTab({ companyId: _companyId, fy: _fy, period: _period, sta
             <div className="grid grid-cols-3 gap-3">
               <div className="rounded-md border p-3 space-y-1">
                 <p className="text-xs text-muted-foreground">Matched</p>
-                <p className="text-2xl font-semibold text-green-600">{result.matched}</p>
+                <p className="text-2xl font-semibold text-green-400">{result.matched}</p>
               </div>
               <div className="rounded-md border p-3 space-y-1">
                 <p className="text-xs text-muted-foreground">In 2B, not in system</p>
-                <p className="text-2xl font-semibold text-amber-600">{result.in2bNotSystem}</p>
+                <p className="text-2xl font-semibold text-amber-400">{result.in2bNotSystem}</p>
               </div>
               <div className="rounded-md border p-3 space-y-1">
                 <p className="text-xs text-muted-foreground">In system, not in 2B</p>
-                <p className="text-2xl font-semibold text-blue-600">{result.inSystemNot2b}</p>
+                <p className="text-2xl font-semibold text-blue-400">{result.inSystemNot2b}</p>
               </div>
             </div>
 
@@ -125,7 +125,7 @@ export function Gstr2bTab({ companyId: _companyId, fy: _fy, period: _period, sta
                 <h3 className="text-sm font-medium mb-2">In GSTR-2B, not in system</h3>
                 <ul className="space-y-1 text-xs font-mono">
                   {result.in2BOnly.map((row, i) => (
-                    <li key={i} className="text-amber-700">{row.gstin} — {row.invoiceNum} — ₹{row.invoiceValue}</li>
+                    <li key={i} className="text-amber-400">{row.gstin} — {row.invoiceNum} — ₹{row.invoiceValue}</li>
                   ))}
                 </ul>
               </section>
@@ -136,7 +136,7 @@ export function Gstr2bTab({ companyId: _companyId, fy: _fy, period: _period, sta
                 <h3 className="text-sm font-medium mb-2">In system, not in GSTR-2B</h3>
                 <ul className="space-y-1 text-xs font-mono">
                   {result.inSystemOnly.map((row, i) => (
-                    <li key={i} className="text-blue-700">{row.supplier_gstin} — {row.po_number} — ₹{row.total_amount}</li>
+                    <li key={i} className="text-blue-400">{row.supplier_gstin} — {row.po_number} — ₹{row.total_amount}</li>
                   ))}
                 </ul>
               </section>
@@ -147,7 +147,7 @@ export function Gstr2bTab({ companyId: _companyId, fy: _fy, period: _period, sta
                 <h3 className="text-sm font-medium mb-2">Matched ({result.matched})</h3>
                 <ul className="space-y-1 text-xs font-mono">
                   {result.matchedRows.slice(0, 20).map((row, i) => (
-                    <li key={i} className="text-green-700">{row.gstin} — {row.invoiceNum} — ₹{row.invoiceValue}</li>
+                    <li key={i} className="text-green-400">{row.gstin} — {row.invoiceNum} — ₹{row.invoiceValue}</li>
                   ))}
                   {result.matched > 20 && (
                     <li className="text-muted-foreground">…and {result.matched - 20} more</li>

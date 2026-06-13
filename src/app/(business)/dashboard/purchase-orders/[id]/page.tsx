@@ -46,13 +46,13 @@ function StatusBadge({ status }: { status: string }) {
       return <Badge variant="secondary">draft</Badge>
     case 'sent':
       return (
-        <Badge variant="outline" className="text-blue-600 border-blue-300">
+        <Badge variant="outline" className="text-blue-400 border-blue-500/30">
           sent
         </Badge>
       )
     case 'confirmed':
       return (
-        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+        <Badge className="bg-green-500/15 text-green-400 hover:bg-green-500/15">
           confirmed
         </Badge>
       )
@@ -60,19 +60,19 @@ function StatusBadge({ status }: { status: string }) {
       return <Badge variant="destructive">rejected</Badge>
     case 'dispatched':
       return (
-        <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">
+        <Badge className="bg-orange-500/15 text-orange-400 hover:bg-orange-500/15">
           dispatched
         </Badge>
       )
     case 'received':
       return (
-        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+        <Badge className="bg-green-500/15 text-green-400 hover:bg-green-500/15">
           received
         </Badge>
       )
     case 'partial':
       return (
-        <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">
+        <Badge className="bg-orange-500/15 text-orange-400 hover:bg-orange-500/15">
           partial
         </Badge>
       )

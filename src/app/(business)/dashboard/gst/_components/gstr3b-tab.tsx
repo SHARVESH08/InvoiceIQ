@@ -142,7 +142,7 @@ export function Gstr3bTab({ companyId: _companyId, fy, period, status }: Gstr3bT
           <Button onClick={handleSave} disabled={loading || filed}>
             {loading ? 'Saving...' : 'Save'}
           </Button>
-          {saved && <span className="text-sm text-green-600">Saved</span>}
+          {saved && <span className="text-sm text-green-400">Saved</span>}
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
