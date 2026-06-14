@@ -4,7 +4,7 @@ import { TrustMarquee } from '@/components/landing/trust-marquee'
 import { FeatureAI } from '@/components/landing/feature-ai'
 import { FeatureWhatsApp } from '@/components/landing/feature-whatsapp'
 import { FeaturePricing } from '@/components/landing/feature-pricing'
-import { CapabilitiesBento } from '@/components/landing/capabilities-bento'
+import { CapabilitiesOrbit } from '@/components/landing/capabilities-orbit'
 import { WhyDifferent } from '@/components/landing/why-different'
 import { HowItWorks } from '@/components/landing/how-it-works'
 import { FinalCta } from '@/components/landing/final-cta'
@@ -26,7 +26,7 @@ export default function LandingPage() {
         <FeatureAI />
         <FeatureWhatsApp />
         <FeaturePricing />
-        <CapabilitiesBento />
+        <CapabilitiesOrbit />
         <WhyDifferent />
         <HowItWorks />
         <FinalCta />
