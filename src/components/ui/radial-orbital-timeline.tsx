@@ -44,7 +44,8 @@ export function RadialOrbitalTimeline({ items }: { items: OrbitItem[] }) {
     const y = radius * Math.sin(rad)
     const z = Math.round(100 + 50 * Math.cos(rad))
     const opacity = Math.max(0.45, Math.min(1, 0.45 + 0.55 * ((1 + Math.sin(rad)) / 2)))
-    return { x, y, z, opacity }
+    // Round so SSR and client emit identical style strings (avoids float hydration mismatch).
+    return { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)), z, opacity: Number(opacity.toFixed(3)) }
   }
 
   return (

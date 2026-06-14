@@ -60,10 +60,7 @@ export function Hero() {
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Button asChild size="lg">
-                <Link href="/auth/business/register">Start free</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="#how">See how it works</Link>
+                <Link href="/get-started">Get started</Link>
               </Button>
             </div>
             <p className="mt-4 font-mono text-xs text-muted-foreground">
