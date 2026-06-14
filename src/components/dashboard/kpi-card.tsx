@@ -15,6 +15,8 @@ export interface KpiCardProps {
   financial?: boolean
   /** Whether the current user is an admin. Defaults to true (safe: shows card). */
   isAdmin?: boolean
+  /** Adds a subtle gold glow border to visually highlight the primary metric card. Defaults to false. */
+  highlight?: boolean
 }
 
 /**
@@ -28,6 +30,7 @@ export function KpiCard({
   value,
   financial = false,
   isAdmin = true,
+  highlight = false,
 }: KpiCardProps) {
   // T-07-06: financial widgets must never appear in DOM for non-admin users
   if (financial && !isAdmin) return null
@@ -35,7 +38,7 @@ export function KpiCard({
   return (
     <Card
       aria-label={`${label}: ${value}`}
-      className="min-h-[44px]"
+      className={`min-h-[44px]${highlight ? ' border-primary/40 shadow-[0_0_30px_-12px_hsl(var(--primary)/0.6)]' : ''}`}
     >
       <CardHeader className="pb-2">
         {/* Label: 12px/400 */}

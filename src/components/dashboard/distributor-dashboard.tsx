@@ -50,6 +50,7 @@ export function DistributorDashboard({
           value={pendingTransferCount}
           financial={false}
           isAdmin={isAdmin}
+          highlight
         />
       </div>
 

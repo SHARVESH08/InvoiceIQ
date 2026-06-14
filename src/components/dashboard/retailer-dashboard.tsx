@@ -45,6 +45,7 @@ export function RetailerDashboard({
           value={formatRupees(todaySales)}
           financial={true}
           isAdmin={isAdmin}
+          highlight
         />
 
         {/* Low Stock Items — operational, visible to all roles */}
