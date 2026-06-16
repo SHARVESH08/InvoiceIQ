@@ -16,7 +16,7 @@ export function FinalCta() {
               Free to start. No card. Your data stays yours.
             </p>
             <Button asChild size="lg" className="mt-8">
-              <Link href="/auth/business/register">Start free</Link>
+              <Link href="/get-started">Get started</Link>
             </Button>
           </div>
         </SpotlightCard>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { HoverLift } from '@/components/motion/hover-lift'
 
 export interface KpiCardProps {
   /** Category label shown above the stat value (12px/400 — text-sm text-muted-foreground) */
@@ -36,20 +37,22 @@ export function KpiCard({
   if (financial && !isAdmin) return null
 
   return (
-    <Card
-      aria-label={`${label}: ${value}`}
-      className={`min-h-[44px]${highlight ? ' border-primary/40 shadow-[0_0_30px_-12px_hsl(var(--primary)/0.6)]' : ''}`}
-    >
-      <CardHeader className="pb-2">
-        {/* Label: 12px/400 */}
-        <CardDescription className="text-sm text-muted-foreground">
-          {label}
-        </CardDescription>
-        {/* Value: 28px/700 */}
-        <CardTitle className="text-3xl font-bold">
-          {value}
-        </CardTitle>
-      </CardHeader>
-    </Card>
+    <HoverLift className="h-full">
+      <Card
+        aria-label={`${label}: ${value}`}
+        className={`min-h-[44px]${highlight ? ' border-primary/40 shadow-[0_0_30px_-12px_hsl(var(--primary)/0.6)]' : ''}`}
+      >
+        <CardHeader className="pb-2">
+          {/* Label: 12px/400 */}
+          <CardDescription className="text-sm text-muted-foreground">
+            {label}
+          </CardDescription>
+          {/* Value: 28px/700 */}
+          <CardTitle className="text-3xl font-bold">
+            {value}
+          </CardTitle>
+        </CardHeader>
+      </Card>
+    </HoverLift>
   )
 }

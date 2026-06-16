@@ -10,7 +10,7 @@ import {
   filterProducts,
   type ProductRow,
 } from '@/lib/pricing/category-state'
-import { toggleProductAlert, toggleCategoryAlert } from '@/lib/actions/pricing-monitor'
+import { toggleProductAlert, toggleCategoryAlert, toggleAllAlerts } from '@/lib/actions/pricing-monitor'
 
 export function ProductAlertManager({
   products,
@@ -56,6 +56,23 @@ export function ProductAlertManager({
     })
   }
 
+  function setAll(enabled: boolean) {
+    let prevSnapshot: Set<string> | null = null
+    setMonitored((prev) => {
+      prevSnapshot = new Set(prev)
+      return enabled ? new Set(products.map((p) => p.id)) : new Set()
+    })
+    startTransition(async () => {
+      const res = await toggleAllAlerts(enabled)
+      if ('error' in res) {
+        toast.error(res.error)
+        if (prevSnapshot) setMonitored(prevSnapshot)
+      } else {
+        toast.success(enabled ? 'Monitoring all products' : 'Stopped monitoring all products')
+      }
+    })
+  }
+
   function setCategory(category: string, enabled: boolean) {
     const ids = products.filter((p) => p.category === category).map((p) => p.id)
     // Snapshot inside the functional updater so a concurrent in-flight product
@@ -91,8 +108,33 @@ export function ProductAlertManager({
     )
   }
 
+  const monitoredCount = products.filter((p) => monitored.has(p.id)).length
+  const allState: 'all' | 'some' | 'none' =
+    monitoredCount === 0 ? 'none' : monitoredCount === products.length ? 'all' : 'some'
+
   return (
     <div className="space-y-4">
+      <Card className="border-primary/30">
+        <CardContent className="flex items-center justify-between gap-3 p-4">
+          <div>
+            <p className="text-sm font-semibold">All products</p>
+            <p className="text-xs text-muted-foreground">
+              {allState === 'all'
+                ? 'Monitoring every product'
+                : allState === 'some'
+                  ? `${monitoredCount} of ${products.length} monitored`
+                  : 'Monitor every product across all categories'}
+            </p>
+          </div>
+          <SwitchAnimated
+            checked={allState === 'all'}
+            onCheckedChange={setAll}
+            disabled={isPending}
+            aria-label={allState === 'all' ? 'Stop monitoring all products' : 'Monitor all products'}
+          />
+        </CardContent>
+      </Card>
+
       <Input
         type="search"
         role="searchbox"

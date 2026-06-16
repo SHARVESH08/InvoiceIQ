@@ -1,3 +1,4 @@
+import { ScrollProgress } from '@/components/motion/scroll-progress'
 import { LandingNav } from '@/components/landing/landing-nav'
 import { Hero } from '@/components/landing/hero'
 import { TrustMarquee } from '@/components/landing/trust-marquee'
@@ -19,6 +20,7 @@ export const metadata = {
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
+      <ScrollProgress />
       <LandingNav />
       <main>
         <Hero />

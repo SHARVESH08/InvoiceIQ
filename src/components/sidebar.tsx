@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { MenuToggle } from '@/components/ui/menu-toggle'
 import { LogoutButton } from '@/components/logout-button'
 import { SidebarNav } from '@/components/nav/sidebar-nav'
+import { BrandMark } from '@/components/ui/brand-mark'
 import { getNavItems, type NavContext } from '@/components/nav/nav-items'
 
 const COOKIE = 'sidebar_collapsed'
@@ -32,6 +33,9 @@ export function Sidebar({ userEmail, defaultCollapsed = false, ...ctx }: Sidebar
     <aside
       className={cn(
         'hidden md:flex md:flex-col shrink-0 border-r border-border bg-card/40 transition-[width] duration-300',
+        // Pinned to the viewport so the footer (Settings / logout) stays reachable
+        // on long pages — the main nav scrolls internally, not the whole sidebar.
+        'md:sticky md:top-0 md:h-screen self-start',
         collapsed ? 'w-16' : 'w-60',
       )}
     >
@@ -43,9 +47,7 @@ export function Sidebar({ userEmail, defaultCollapsed = false, ...ctx }: Sidebar
         )}
       >
         <Link href="/dashboard" className="flex items-center gap-2" aria-label="InvoiceIQ home">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">
-            i
-          </span>
+          <BrandMark size={28} priority />
           {!collapsed && <span className="font-display text-base font-semibold">InvoiceIQ</span>}
         </Link>
         <div className={cn(!collapsed && 'ml-auto')}>

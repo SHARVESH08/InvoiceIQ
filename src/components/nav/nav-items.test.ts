@@ -28,9 +28,15 @@ describe('getNavItems role gating', () => {
     expect(po.badge).toBe(3)
   })
 
-  it('returns Settings and Pricing Alerts as footer items', () => {
+  it('returns Settings as the only footer item', () => {
     const { footer } = getNavItems({})
-    expect(footer.map((i) => i.label)).toEqual(['Settings', 'Pricing Alerts'])
+    expect(footer.map((i) => i.label)).toEqual(['Settings'])
+  })
+
+  it('places Pricing Alerts in main immediately after Chat', () => {
+    const labels = getNavItems({}).main.map((i) => i.label)
+    expect(labels).toContain('Pricing Alerts')
+    expect(labels.indexOf('Pricing Alerts')).toBe(labels.indexOf('Chat') + 1)
   })
 })
 

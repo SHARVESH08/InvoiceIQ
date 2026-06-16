@@ -70,10 +70,10 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
   main.push({ href: '/dashboard/reports', label: 'Reports', icon: BarChart3 })
   main.push({ href: '/dashboard/gst', label: 'GST', icon: Receipt })
   main.push({ href: '/dashboard/chat', label: 'Chat', icon: Sparkles })
+  main.push({ href: '/dashboard/settings/pricing-alerts', label: 'Pricing Alerts', icon: BellRing })
 
   const footer: NavItem[] = [
     { href: '/settings/godowns', label: 'Settings', icon: Settings },
-    { href: '/dashboard/settings/pricing-alerts', label: 'Pricing Alerts', icon: BellRing },
   ]
 
   return { main, footer }

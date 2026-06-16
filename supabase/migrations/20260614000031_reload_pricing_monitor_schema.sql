@@ -1,12 +1,13 @@
--- Phase 3 (UI revamp): per-product pricing monitoring.
--- Replaces category-only monitoring with product-level rows. The weekly cron
--- still fetches one market price per category, but alerts per monitored product.
+-- Fix: PostgREST's schema cache never picked up public.pricing_monitor_products
+-- (created in 20260612000030). Every REST call to it returned
+--   PGRST205 "Could not find the table 'public.pricing_monitor_products' in the
+--   schema cache"
+-- so the pricing-alert toggles failed with "Failed to enable alert/category"
+-- even though the table, FKs and RLS policies exist in Postgres.
 --
--- NOTE (2026-06-14): made fully idempotent and given explicit table GRANTs.
--- The original version lacked GRANTs to the API roles, so PostgREST excluded
--- the table from its schema cache (PGRST205 "Could not find the table ... in
--- the schema cache") and every REST call failed. RLS alone is not enough —
--- PostgREST only caches objects the authenticated/service_role can access.
+-- This migration re-asserts the object idempotently and forces a schema-cache
+-- reload. Running it (or any DDL) also fires Supabase's pgrst_ddl_watch event
+-- trigger, so a fresh `db reset`/deploy can't reproduce the stale cache.
 
 CREATE TABLE IF NOT EXISTS public.pricing_monitor_products (
   id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,12 +23,13 @@ CREATE INDEX IF NOT EXISTS pricing_monitor_products_company_idx
 ALTER TABLE public.pricing_monitor_products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pricing_monitor_products FORCE ROW LEVEL SECURITY;
 
--- Table-level privileges for the PostgREST API roles. Row visibility is still
--- governed by the RLS policies below; these GRANTs only make the table visible
--- to the API at all.
+-- The root cause: the table had no GRANTs to the API roles, so PostgREST left
+-- it out of the schema cache (PGRST205) no matter how often the cache reloaded.
 GRANT SELECT, INSERT, DELETE ON TABLE public.pricing_monitor_products TO authenticated;
 GRANT ALL ON TABLE public.pricing_monitor_products TO service_role;
 
+-- Re-assert policies idempotently (drop-then-create is safe whether or not the
+-- 20260612000030 policies were applied).
 DROP POLICY IF EXISTS "pricing_monitor_products_select" ON public.pricing_monitor_products;
 CREATE POLICY "pricing_monitor_products_select"
   ON public.pricing_monitor_products
@@ -46,12 +48,5 @@ CREATE POLICY "pricing_monitor_products_delete"
   FOR DELETE TO authenticated
   USING (company_id = (SELECT get_company_id()));
 
--- Backfill: seed product-level monitoring from existing monitored categories so
--- current users keep their alerts. Mirrors the cron's old ILIKE category match.
-INSERT INTO public.pricing_monitor_products (company_id, product_id)
-SELECT DISTINCT p.company_id, p.id
-FROM public.products p
-JOIN public.pricing_monitor_categories c
-  ON c.company_id = p.company_id
- AND p.category ILIKE '%' || c.category || '%'
-ON CONFLICT (company_id, product_id) DO NOTHING;
+-- Force PostgREST to rebuild its schema cache immediately.
+NOTIFY pgrst, 'reload schema';

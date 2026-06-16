@@ -15,7 +15,21 @@ export function RadialOrbitalTimeline({ items }: { items: OrbitItem[] }) {
   const [expanded, setExpanded] = useState<number | null>(null)
   const [rotation, setRotation] = useState(0)
   const [autoRotate, setAutoRotate] = useState(true)
+  // Responsive orbit radius. Initial value is deterministic (matches SSR), then
+  // shrunk to fit narrow viewports after mount — no hydration mismatch.
+  const [radius, setRadius] = useState(240)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const measure = () => {
+      const w = containerRef.current?.offsetWidth ?? 768
+      // Leave room for the node (~76px) + its label on each side.
+      setRadius(Math.max(130, Math.min(240, Math.round(w / 2 - 90))))
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
 
   useEffect(() => {
     if (!autoRotate) return
@@ -38,12 +52,11 @@ export function RadialOrbitalTimeline({ items }: { items: OrbitItem[] }) {
 
   const nodePos = (index: number, total: number) => {
     const angle = ((index / total) * 360 + rotation) % 360
-    const radius = 180
     const rad = (angle * Math.PI) / 180
     const x = radius * Math.cos(rad)
     const y = radius * Math.sin(rad)
     const z = Math.round(100 + 50 * Math.cos(rad))
-    const opacity = Math.max(0.45, Math.min(1, 0.45 + 0.55 * ((1 + Math.sin(rad)) / 2)))
+    const opacity = Math.max(0.65, Math.min(1, 0.65 + 0.35 * ((1 + Math.sin(rad)) / 2)))
     // Round so SSR and client emit identical style strings (avoids float hydration mismatch).
     return { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)), z, opacity: Number(opacity.toFixed(3)) }
   }
@@ -51,7 +64,8 @@ export function RadialOrbitalTimeline({ items }: { items: OrbitItem[] }) {
   return (
     <div
       ref={containerRef}
-      className="relative mx-auto flex h-[520px] w-full max-w-3xl items-center justify-center overflow-visible"
+      className="relative mx-auto flex w-full max-w-4xl items-center justify-center overflow-visible"
+      style={{ height: radius * 2 + 220 }}
       onClick={(e) => {
         if (e.target === containerRef.current) {
           setExpanded(null)
@@ -60,12 +74,15 @@ export function RadialOrbitalTimeline({ items }: { items: OrbitItem[] }) {
       }}
     >
       <div className="absolute flex items-center justify-center" style={{ perspective: '1000px' }}>
-        <div className="absolute z-10 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-amber-600 animate-pulse">
-          <div className="absolute h-20 w-20 animate-ping rounded-full border border-primary/30 opacity-70" />
-          <span className="font-display text-sm font-bold text-primary-foreground">IQ</span>
+        <div className="absolute z-10 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-primary to-amber-600 animate-pulse">
+          <div className="absolute h-24 w-24 animate-ping rounded-full border border-primary/30 opacity-70" />
+          <span className="font-display text-base font-bold text-primary-foreground">IQ</span>
         </div>
 
-        <div className="absolute h-[360px] w-[360px] rounded-full border border-border" />
+        <div
+          className="absolute rounded-full border border-border"
+          style={{ height: radius * 2, width: radius * 2 }}
+        />
 
         {items.map((item, i) => {
           const pos = nodePos(i, items.length)
@@ -86,27 +103,27 @@ export function RadialOrbitalTimeline({ items }: { items: OrbitItem[] }) {
               }}
             >
               <div
-                className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                className={`flex h-16 w-16 items-center justify-center rounded-full border-2 transition-all duration-300 ${
                   isOpen
                     ? 'scale-125 border-primary bg-primary text-primary-foreground shadow-[0_0_24px_-4px_hsl(var(--primary)/0.8)]'
                     : 'border-border bg-card text-foreground hover:border-primary/60'
                 }`}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-7 w-7" />
               </div>
               <div
-                className={`absolute left-1/2 top-14 -translate-x-1/2 whitespace-nowrap text-xs font-medium transition-all ${
-                  isOpen ? 'text-primary' : 'text-muted-foreground'
+                className={`absolute left-1/2 top-[72px] -translate-x-1/2 whitespace-nowrap text-sm font-medium transition-all ${
+                  isOpen ? 'text-primary' : 'text-foreground'
                 }`}
               >
                 {item.title}
               </div>
               {isOpen && (
-                <Card className="absolute left-1/2 top-24 w-64 -translate-x-1/2 border-border bg-card/95 backdrop-blur-md">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">{item.title}</CardTitle>
+                <Card className="absolute left-1/2 top-28 w-80 -translate-x-1/2 border-border bg-card/95 p-2 shadow-[0_12px_40px_-12px_hsl(var(--primary)/0.45)] backdrop-blur-md">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">{item.title}</CardTitle>
                   </CardHeader>
-                  <CardContent className="text-xs text-muted-foreground">{item.description}</CardContent>
+                  <CardContent className="text-base leading-relaxed text-muted-foreground">{item.description}</CardContent>
                 </Card>
               )}
             </div>

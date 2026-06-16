@@ -7,7 +7,9 @@ import { HowItWorks } from './how-it-works'
 describe('landing sections', () => {
   it('FinalCta shows the single signup CTA label', () => {
     render(<FinalCta />)
-    expect(screen.getByRole('link', { name: 'Start free' })).toBeInTheDocument()
+    const cta = screen.getByRole('link', { name: 'Get started' })
+    expect(cta).toBeInTheDocument()
+    expect(cta).toHaveAttribute('href', '/get-started')
   })
   it('HowItWorks renders three steps', () => {
     render(<HowItWorks />)

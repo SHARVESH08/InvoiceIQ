@@ -42,14 +42,62 @@ export async function toggleProductAlert(productId: string, enabled: boolean): P
         { company_id: c.companyId, product_id: productId },
         { onConflict: 'company_id,product_id', ignoreDuplicates: true },
       )
-    if (error) return { error: 'Failed to enable alert' }
+    if (error) {
+      console.error('[pricing-monitor] enable product failed:', error)
+      return { error: 'Failed to enable alert' }
+    }
   } else {
     const { error } = await c.supabase
       .from('pricing_monitor_products')
       .delete()
       .eq('company_id', c.companyId)
       .eq('product_id', productId)
-    if (error) return { error: 'Failed to disable alert' }
+    if (error) {
+      console.error('[pricing-monitor] disable product failed:', error)
+      return { error: 'Failed to disable alert' }
+    }
+  }
+  revalidatePath(PAGE)
+  return { success: true }
+}
+
+/** Enable/disable monitoring for every categorized product in the company. */
+export async function toggleAllAlerts(enabled: boolean): Promise<Result> {
+  const c = await ctx()
+  if ('error' in c) return c
+
+  if (enabled) {
+    const { data: prodRows, error: prodErr } = await c.supabase
+      .from('products')
+      .select('id')
+      .eq('company_id', c.companyId)
+      .not('category', 'is', null)
+    if (prodErr) {
+      console.error('[pricing-monitor] enable all: read products failed:', prodErr)
+      return { error: 'Failed to read products' }
+    }
+    const ids = (prodRows ?? []).map((r) => r.id as string)
+    if (ids.length === 0) return { success: true }
+
+    const { error } = await c.supabase
+      .from('pricing_monitor_products')
+      .upsert(
+        ids.map((product_id) => ({ company_id: c.companyId, product_id })),
+        { onConflict: 'company_id,product_id', ignoreDuplicates: true },
+      )
+    if (error) {
+      console.error('[pricing-monitor] enable all failed:', error)
+      return { error: 'Failed to enable all alerts' }
+    }
+  } else {
+    const { error } = await c.supabase
+      .from('pricing_monitor_products')
+      .delete()
+      .eq('company_id', c.companyId)
+    if (error) {
+      console.error('[pricing-monitor] disable all failed:', error)
+      return { error: 'Failed to disable all alerts' }
+    }
   }
   revalidatePath(PAGE)
   return { success: true }
@@ -79,14 +127,20 @@ export async function toggleCategoryAlert(category: string, enabled: boolean): P
         ids.map((product_id) => ({ company_id: c.companyId, product_id })),
         { onConflict: 'company_id,product_id', ignoreDuplicates: true },
       )
-    if (error) return { error: 'Failed to enable category' }
+    if (error) {
+      console.error('[pricing-monitor] enable category failed:', error)
+      return { error: 'Failed to enable category' }
+    }
   } else {
     const { error } = await c.supabase
       .from('pricing_monitor_products')
       .delete()
       .eq('company_id', c.companyId)
       .in('product_id', ids)
-    if (error) return { error: 'Failed to disable category' }
+    if (error) {
+      console.error('[pricing-monitor] disable category failed:', error)
+      return { error: 'Failed to disable category' }
+    }
   }
   revalidatePath(PAGE)
   return { success: true }
