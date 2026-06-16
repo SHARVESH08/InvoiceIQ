@@ -14,7 +14,6 @@ interface CompanyContext {
 
 interface CompanyRow {
   bot_code: string | null
-  phone: string | null
   name: string
 }
 
@@ -45,7 +44,7 @@ export default async function WhatsAppPage() {
   const [companyResult, sessionsResult] = await Promise.all([
     supabase
       .from('companies')
-      .select('bot_code, phone, name')
+      .select('bot_code, name')
       .eq('id', company_id)
       .single<CompanyRow>(),
     supabase
@@ -64,7 +63,12 @@ export default async function WhatsAppPage() {
 
   // Safe defaults on query error
   const botCode = companyResult.data?.bot_code ?? null
-  const phoneNumber = companyResult.data?.phone ?? null
+  // The customer-facing wa.me link/QR must point at the shared platform WhatsApp
+  // sender (the number the webhook listens on) — NOT companies.phone (the
+  // business's own contact number, which isn't connected to the bot). The bot
+  // routes to the right company by the START-<bot_code> keyword. Set
+  // WHATSAPP_BOT_NUMBER to the sender's dialable E.164 number (see REMAINING-WORK 5c).
+  const phoneNumber = process.env.WHATSAPP_BOT_NUMBER ?? null
   const companyName = companyResult.data?.name ?? ''
   const sessions = (sessionsResult.data ?? []) as SessionRow[]
 

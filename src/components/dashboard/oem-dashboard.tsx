@@ -65,6 +65,7 @@ export function OemDashboard({
           value={formatRupees(revenueMtd)}
           financial={true}
           isAdmin={isAdmin}
+          highlight
         />
 
         {/* GSTR due date — informational, not financial, always visible */}

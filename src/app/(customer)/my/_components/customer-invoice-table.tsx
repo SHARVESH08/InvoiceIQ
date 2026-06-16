@@ -33,11 +33,11 @@ interface Props {
 }
 
 const STATUS_CLASSES: Record<string, string> = {
-  paid: 'bg-green-100 text-green-700',
-  partial: 'bg-amber-100 text-amber-700',
-  unpaid: 'bg-red-100 text-red-700',
-  cancelled: 'bg-slate-100 text-slate-500',
-  sent: 'bg-blue-100 text-blue-700',
+  paid: 'bg-green-500/15 text-green-400',
+  partial: 'bg-amber-500/15 text-amber-400',
+  unpaid: 'bg-red-500/15 text-red-400',
+  cancelled: 'bg-muted text-muted-foreground border-border',
+  sent: 'bg-blue-500/15 text-blue-400',
 }
 
 export function CustomerInvoiceTable({ invoices, total, page }: Props) {
@@ -87,7 +87,7 @@ export function CustomerInvoiceTable({ invoices, total, page }: Props) {
                     <Badge
                       className={
                         STATUS_CLASSES[invoice.payment_status] ??
-                        'bg-slate-100 text-slate-500'
+                        'bg-muted text-muted-foreground border-border'
                       }
                     >
                       {invoice.payment_status}

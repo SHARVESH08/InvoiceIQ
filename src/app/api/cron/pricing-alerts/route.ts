@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { searchBrave, extractPricesFromResults, computeAveragePrice } from '@/lib/brave/search'
+import { evaluateProductAlerts } from '@/lib/pricing/evaluate-alerts'
 
 export const runtime = 'nodejs'
 
@@ -23,144 +24,105 @@ export async function POST(req: NextRequest) {
     )
     const resend = new Resend(process.env.RESEND_API_KEY)
 
-    // Fetch all monitored categories (all active rows in pricing_monitor_categories)
-    const { data: categoryRows, error: catError } = await supabase
-      .from('pricing_monitor_categories')
-      .select('company_id, category')
+    // Fetch all monitored products joined with their product data.
+    const { data: monRows, error: monErr } = await supabase
+      .from('pricing_monitor_products')
+      .select('company_id, products(id, name, category, selling_price)')
 
-    if (catError) {
-      console.error('[pricing-alerts] fetch categories error:', catError)
-      return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 })
+    if (monErr) {
+      console.error('[pricing-alerts] fetch monitored products error:', monErr)
+      return NextResponse.json({ error: 'Failed to fetch monitored products' }, { status: 500 })
     }
 
-    const rows = categoryRows ?? []
+    type Joined = {
+      company_id: string
+      products: { id: string; name: string | null; category: string | null; selling_price: number | null } | null
+    }
+    const monitored = ((monRows ?? []) as Joined[])
+      .map((r) => ({
+        company_id: r.company_id,
+        product_id: r.products?.id ?? '',
+        name: r.products?.name ?? 'product',
+        category: (r.products?.category ?? '').trim(),
+        selling_price: r.products?.selling_price ?? 0,
+      }))
+      // product_id !== '' guards against a broken FK (null embedded product row).
+      .filter((m) => m.product_id !== '' && m.category.length > 0 && m.selling_price > 0)
 
-    // T-11-16: De-duplicate categories across companies to minimize Brave API calls (2,000/month limit)
-    const uniqueCategories = Array.from(new Set(rows.map((r) => r.category as string)))
-
+    // One Brave call per distinct category (preserve the 200-call cap).
     const MAX_BRAVE_CALLS = 200
-    const cappedCategories = uniqueCategories.slice(0, MAX_BRAVE_CALLS)
-    if (uniqueCategories.length > MAX_BRAVE_CALLS) {
-      console.warn('[pricing-alerts] Brave API call cap reached — some categories skipped')
-    }
+    const categories = Array.from(new Set(monitored.map((m) => m.category))).slice(0, MAX_BRAVE_CALLS)
 
-    // Build map: category → list of company_ids monitoring it
-    const categoryToCompanies: Record<string, string[]> = {}
-    for (const row of rows) {
-      const cat = row.category as string
-      if (!categoryToCompanies[cat]) categoryToCompanies[cat] = []
-      categoryToCompanies[cat].push(row.company_id as string)
-    }
-
-    let categoriesChecked = 0
-    let alertsSent = 0
-
-    for (const category of cappedCategories) {
-      let marketAvg: number | null = null
-
+    const marketAvgByCategory: Record<string, number> = {}
+    for (const category of categories) {
       try {
-        // T-11-16: One Brave call per unique category
         const results = await searchBrave(`${category} price india wholesale`, 10)
-        const prices = extractPricesFromResults(results)
-        marketAvg = computeAveragePrice(prices)
+        const avg = computeAveragePrice(extractPricesFromResults(results))
+        if (avg !== null) marketAvgByCategory[category] = avg
       } catch (braveErr) {
-        // T-11-16: Return 500 on Brave API error rather than retrying
-        console.error(`[pricing-alerts] Brave Search error for category "${category}":`, braveErr)
-        continue
-      }
-
-      if (marketAvg === null) {
-        console.log(`[pricing-alerts] No price data for category "${category}" — skipping`)
-        continue
-      }
-
-      categoriesChecked++
-
-      const companiesForCategory = categoryToCompanies[category] ?? []
-
-      for (const companyId of companiesForCategory) {
-        // Compute company average price for products in this category
-        const { data: productRows } = await supabase
-          .from('products')
-          .select('selling_price')
-          .eq('company_id', companyId)
-          .ilike('category', `%${category}%`)
-
-        const products = productRows ?? []
-        if (products.length === 0) continue
-
-        // Use selling_price — base_price is the legacy column and is always 0
-        // (never written by the product form; see migration 20260607000020).
-        const totalPrice = products.reduce((sum, p) => sum + (p.selling_price ?? 0), 0)
-        const companyAvg = totalPrice / products.length
-
-        if (companyAvg === 0) continue
-
-        const delta = Math.abs(marketAvg - companyAvg) / companyAvg
-
-        if (delta <= 0.10) continue
-
-        // Delta exceeds 10% threshold — find company admin email
-        const { data: adminRows } = await supabase
-          .from('company_users')
-          .select('user_id, companies(name)')
-          .eq('company_id', companyId)
-          .eq('role', 'admin')
-          .limit(1)
-
-        const adminUser = adminRows?.[0]
-        if (!adminUser) {
-          console.log(`[pricing-alerts] No admin found for company ${companyId} — skipping alert`)
-          continue
-        }
-
-        // Get admin email from auth.users via service role
-        const { data: authUser } = await supabase.auth.admin.getUserById(adminUser.user_id)
-        const adminEmail = authUser?.user?.email
-
-        if (!adminEmail) {
-          console.log(`[pricing-alerts] No admin email for company ${companyId} — skipping alert`)
-          continue
-        }
-
-        const companyName = (adminUser.companies as { name?: string } | null)?.name ?? 'Your company'
-        const marketDisplay = marketAvg.toFixed(2)
-        const companyDisplay = companyAvg.toFixed(2)
-        const suggestedLow = (marketAvg * 0.95).toFixed(2)
-        const suggestedHigh = (marketAvg * 1.05).toFixed(2)
-        const deltaPercent = (delta * 100).toFixed(1)
-
-        const { error: emailError } = await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL!,
-          to: adminEmail,
-          subject: `Pricing alert: ${category} market price changed`,
-          text: [
-            `Hello ${companyName},`,
-            '',
-            `Market price for "${category}" has changed significantly:`,
-            '',
-            `  Market average:   ₹${marketDisplay}`,
-            `  Your average:     ₹${companyDisplay}`,
-            `  Difference:       ${deltaPercent}%`,
-            `  Suggested range:  ₹${suggestedLow} – ₹${suggestedHigh}`,
-            '',
-            'Update your pricing at:',
-            `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://invoiceiq.in'}/dashboard/settings/pricing-alerts`,
-            '',
-            'This alert was generated by InvoiceIQ\'s automated pricing monitor.',
-          ].join('\n'),
-        })
-
-        if (emailError) {
-          console.error(`[pricing-alerts] Resend error for company ${companyId}:`, emailError)
-        } else {
-          console.log(`[pricing-alerts] alert sent company=${companyId} category="${category}" delta=${deltaPercent}%`)
-          alertsSent++
-        }
+        console.error(`[pricing-alerts] Brave error for "${category}":`, braveErr)
       }
     }
 
-    return NextResponse.json({ categories_checked: categoriesChecked, alerts_sent: alertsSent }, { status: 200 })
+    const alertsByCompany = evaluateProductAlerts(monitored, marketAvgByCategory)
+
+    // alertsSent counts flagged products across all emails sent (not email count).
+    let alertsSent = 0
+    for (const [companyId, alerts] of alertsByCompany) {
+      const { data: adminRows } = await supabase
+        .from('company_users')
+        .select('user_id, companies(name)')
+        .eq('company_id', companyId)
+        .eq('role', 'admin')
+        .limit(1)
+      const adminUser = adminRows?.[0]
+      if (!adminUser) continue
+
+      const { data: authUser } = await supabase.auth.admin.getUserById(adminUser.user_id)
+      const adminEmail = authUser?.user?.email
+      if (!adminEmail) continue
+
+      const companyName = (adminUser.companies as { name?: string } | null)?.name ?? 'Your company'
+      // Cap the body so a company monitoring hundreds of products gets a readable email.
+      const MAX_EMAIL_LINES = 50
+      const lines = alerts
+        .slice(0, MAX_EMAIL_LINES)
+        .map(
+          (a) =>
+            `  • ${a.name} (${a.category}): yours ₹${a.companyPrice.toFixed(2)} vs market ₹${a.marketAvg.toFixed(2)} (${a.deltaPct.toFixed(1)}% off)`,
+        )
+      if (alerts.length > MAX_EMAIL_LINES) {
+        lines.push(`  … and ${alerts.length - MAX_EMAIL_LINES} more`)
+      }
+
+      const { error: emailError } = await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL!,
+        to: adminEmail,
+        subject: `Pricing alert: ${alerts.length} product${alerts.length === 1 ? '' : 's'} need a look`,
+        text: [
+          `Hello ${companyName},`,
+          '',
+          'These monitored products are priced more than 10% away from the market:',
+          '',
+          ...lines,
+          '',
+          'Review them at:',
+          `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://invoiceiq.in'}/dashboard/settings/pricing-alerts`,
+          '',
+          "This alert was generated by InvoiceIQ's automated pricing monitor.",
+        ].join('\n'),
+      })
+      if (emailError) {
+        console.error(`[pricing-alerts] Resend error company=${companyId}:`, emailError)
+      } else {
+        alertsSent += alerts.length
+      }
+    }
+
+    return NextResponse.json(
+      { categories_checked: Object.keys(marketAvgByCategory).length, alerts_sent: alertsSent },
+      { status: 200 },
+    )
   } catch (err) {
     console.error('[pricing-alerts] unexpected error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

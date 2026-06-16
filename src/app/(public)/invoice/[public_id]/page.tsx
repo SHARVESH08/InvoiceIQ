@@ -80,7 +80,7 @@ export async function generateMetadata({ params }: { params: { public_id: string
 
 function NotFound() {
   return (
-    <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+    <main className="min-h-screen bg-muted flex items-center justify-center">
       <div className="text-center space-y-2">
         <p className="text-lg font-semibold">Invoice not found</p>
         <p className="text-sm text-muted-foreground">
@@ -134,11 +134,11 @@ export default async function PublicInvoicePage({ params }: { params: { public_i
   const totalInWords = rupeesToWords(Math.round(Number(invoice.total_amount) * 100))
 
   return (
-    <main className="min-h-screen bg-slate-50 py-8 px-4">
+    <main className="min-h-screen bg-muted py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
 
         {/* [A] Page header bar */}
-        <div className="flex items-center justify-between bg-white rounded-xl shadow-sm p-5 border">
+        <div className="flex items-center justify-between bg-card rounded-xl shadow-sm p-5 border">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
               {companyInitials}

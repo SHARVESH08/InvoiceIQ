@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { MobileNavDrawer } from '@/components/mobile-nav-drawer'
-import type { NavLinksProps } from '@/components/nav-links'
+import type { NavContext } from '@/components/nav/nav-items'
 
-export function MobileHeader(props: NavLinksProps) {
+export function MobileHeader(props: NavContext) {
   const [open, setOpen] = useState(false)
   return (
     <header className="flex md:hidden sticky top-0 z-50 h-14 items-center border-b bg-background px-4">

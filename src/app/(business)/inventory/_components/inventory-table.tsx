@@ -93,20 +93,20 @@ function debounce<T extends (...args: Parameters<T>) => void>(
 function InventoryStatusBadge({ status }: { status: InventoryStatus }) {
   if (status === 'out_of_stock') {
     return (
-      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+      <Badge variant="outline" className="bg-red-500/15 text-red-400 border-red-500/30">
         Out of Stock
       </Badge>
     )
   }
   if (status === 'low_stock') {
     return (
-      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+      <Badge variant="outline" className="bg-amber-500/15 text-amber-400 border-amber-500/30">
         Low Stock
       </Badge>
     )
   }
   return (
-    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+    <Badge variant="outline" className="bg-green-500/15 text-green-400 border-green-500/30">
       OK
     </Badge>
   )
@@ -272,7 +272,7 @@ export function InventoryTable({
         {activeFilter === 'low_stock' && (
           <Badge
             variant="outline"
-            className="bg-amber-50 text-amber-700 border-amber-200 gap-1 cursor-pointer"
+            className="bg-amber-500/15 text-amber-400 border-amber-500/30 gap-1 cursor-pointer"
             onClick={clearFilter}
           >
             Showing: Low Stock &amp; Out of Stock
@@ -282,7 +282,7 @@ export function InventoryTable({
         {activeFilter === 'out_of_stock' && (
           <Badge
             variant="outline"
-            className="bg-red-50 text-red-700 border-red-200 gap-1 cursor-pointer"
+            className="bg-red-500/15 text-red-400 border-red-500/30 gap-1 cursor-pointer"
             onClick={clearFilter}
           >
             Showing: Out of Stock only

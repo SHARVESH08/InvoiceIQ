@@ -38,16 +38,16 @@ interface WhatsAppRealtimeLogProps {
 
 // Status badge mapping per UI-SPEC Copywriting + Color
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  invoice_sent: { label: 'Order Placed', className: 'bg-green-100 text-green-700 hover:bg-green-100' },
-  cart_review: { label: 'Confirming', className: 'bg-amber-100 text-amber-700 hover:bg-amber-100' },
-  item_selection: { label: 'Browsing', className: 'bg-amber-100 text-amber-700 hover:bg-amber-100' },
-  catalog_sent: { label: 'Started', className: 'bg-blue-100 text-blue-700 hover:bg-blue-100' },
-  greeted: { label: 'Started', className: 'bg-blue-100 text-blue-700 hover:bg-blue-100' },
-  idle: { label: 'Expired', className: 'bg-slate-100 text-slate-500 hover:bg-slate-100' },
+  invoice_sent: { label: 'Order Placed', className: 'bg-green-500/15 text-green-400 hover:bg-green-500/15' },
+  cart_review: { label: 'Confirming', className: 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/15' },
+  item_selection: { label: 'Browsing', className: 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/15' },
+  catalog_sent: { label: 'Started', className: 'bg-blue-500/15 text-blue-400 hover:bg-blue-500/15' },
+  greeted: { label: 'Started', className: 'bg-blue-500/15 text-blue-400 hover:bg-blue-500/15' },
+  idle: { label: 'Expired', className: 'bg-muted text-muted-foreground hover:bg-muted' },
 }
 
 function getStatusBadge(state: string) {
-  return STATUS_BADGE[state] ?? { label: 'Expired', className: 'bg-slate-100 text-slate-500 hover:bg-slate-100' }
+  return STATUS_BADGE[state] ?? { label: 'Expired', className: 'bg-muted text-muted-foreground hover:bg-muted' }
 }
 
 function formatTime(createdAt: string): string {

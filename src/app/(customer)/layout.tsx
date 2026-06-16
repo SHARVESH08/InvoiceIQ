@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { LogoutButton } from '@/components/logout-button'
+import { PageTransition } from '@/components/motion/page-transition'
 
 export default async function CustomerLayout({
   children,
@@ -31,7 +32,9 @@ export default async function CustomerLayout({
           <LogoutButton />
         </div>
       </nav>
-      <main className="flex-1 p-6">{children}</main>
+      <main className="flex-1 p-6">
+        <PageTransition>{children}</PageTransition>
+      </main>
     </div>
   )
 }

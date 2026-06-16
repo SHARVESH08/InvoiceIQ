@@ -29,20 +29,20 @@ interface Props {
 function InventoryStatusBadge({ status }: { status: InventoryStatus }) {
   if (status === 'out_of_stock') {
     return (
-      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+      <Badge variant="outline" className="bg-red-500/15 text-red-400 border-red-500/30">
         Out of Stock
       </Badge>
     )
   }
   if (status === 'low_stock') {
     return (
-      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+      <Badge variant="outline" className="bg-amber-500/15 text-amber-400 border-amber-500/30">
         Low Stock
       </Badge>
     )
   }
   return (
-    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+    <Badge variant="outline" className="bg-green-500/15 text-green-400 border-green-500/30">
       OK
     </Badge>
   )
@@ -139,7 +139,7 @@ export default async function InventoryProductPage({ params }: Props) {
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{row.qty}</TableCell>
                     <TableCell
-                      className="text-right tabular-nums text-amber-600"
+                      className="text-right tabular-nums text-amber-400"
                       title="Qty locked in pending transfer requests"
                     >
                       {row.reserved}
@@ -183,7 +183,7 @@ export default async function InventoryProductPage({ params }: Props) {
                   <span>
                     {fromGodown?.name ?? '—'} → {toGodown?.name ?? '—'}
                   </span>
-                  <span className="tabular-nums text-amber-600">
+                  <span className="tabular-nums text-amber-400">
                     {t.qty} {product.unit}
                   </span>
                   <Button variant="ghost" size="sm" asChild>

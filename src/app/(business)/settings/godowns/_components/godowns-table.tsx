@@ -213,8 +213,8 @@ export function GodownsTable({ godowns }: GodownsTableProps) {
                     variant="outline"
                     className={
                       g.is_active
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : 'bg-slate-50 text-slate-500 border-slate-200'
+                        ? 'bg-green-500/15 text-green-400 border-green-500/30'
+                        : 'bg-muted text-muted-foreground border-border'
                     }
                   >
                     {g.is_active ? 'Active' : 'Inactive'}

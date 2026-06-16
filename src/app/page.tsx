@@ -1,23 +1,39 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { ScrollProgress } from '@/components/motion/scroll-progress'
+import { LandingNav } from '@/components/landing/landing-nav'
+import { Hero } from '@/components/landing/hero'
+import { TrustMarquee } from '@/components/landing/trust-marquee'
+import { FeatureAI } from '@/components/landing/feature-ai'
+import { FeatureWhatsApp } from '@/components/landing/feature-whatsapp'
+import { FeaturePricing } from '@/components/landing/feature-pricing'
+import { CapabilitiesOrbit } from '@/components/landing/capabilities-orbit'
+import { WhyDifferent } from '@/components/landing/why-different'
+import { HowItWorks } from '@/components/landing/how-it-works'
+import { FinalCta } from '@/components/landing/final-cta'
+import { LandingFooter } from '@/components/landing/landing-footer'
+
+export const metadata = {
+  title: 'InvoiceIQ: Billing that thinks for Indian business',
+  description:
+    'GST invoicing, live inventory, WhatsApp orders, and AI pricing alerts. One system for Indian SMBs.',
+}
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-8 p-8">
-      <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight">InvoiceIQ</h1>
-        <p className="text-muted-foreground text-sm">
-          GST-compliant invoicing for Indian businesses
-        </p>
-      </div>
-      <div className="flex gap-4">
-        <Button asChild size="lg">
-          <Link href="/auth/business/register">Register your business</Link>
-        </Button>
-        <Button asChild variant="outline" size="lg">
-          <Link href="/auth/customer/login">View my invoices</Link>
-        </Button>
-      </div>
-    </main>
+    <div className="min-h-screen bg-background">
+      <ScrollProgress />
+      <LandingNav />
+      <main>
+        <Hero />
+        <TrustMarquee />
+        <FeatureAI />
+        <FeatureWhatsApp />
+        <FeaturePricing />
+        <CapabilitiesOrbit />
+        <WhyDifferent />
+        <HowItWorks />
+        <FinalCta />
+      </main>
+      <LandingFooter />
+    </div>
   )
 }

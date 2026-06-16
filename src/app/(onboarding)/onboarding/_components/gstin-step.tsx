@@ -84,7 +84,7 @@ export function GstinStep({ companyId: _companyId }: GstinStepProps) {
         />
         {error && <p className="text-sm text-destructive">{error}</p>}
         {verified && (
-          <p className="text-sm text-green-600">GSTIN verified successfully.</p>
+          <p className="text-sm text-green-400">GSTIN verified successfully.</p>
         )}
       </div>
 

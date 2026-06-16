@@ -9,7 +9,7 @@ interface TaxTypeBadgeProps {
 export function TaxTypeBadge({ taxType }: TaxTypeBadgeProps) {
   if (taxType === 'intra') {
     return (
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3 py-1 text-xs font-medium text-blue-700">
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/15 border border-blue-500/30 px-3 py-1 text-xs font-medium text-blue-400">
         <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
         Intra-state · CGST + SGST
       </div>
@@ -17,7 +17,7 @@ export function TaxTypeBadge({ taxType }: TaxTypeBadgeProps) {
   }
   if (taxType === 'inter') {
     return (
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 border border-orange-200 px-3 py-1 text-xs font-medium text-orange-700">
+      <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-500/15 border border-orange-500/30 px-3 py-1 text-xs font-medium text-orange-400">
         <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
         Inter-state · IGST
       </div>
