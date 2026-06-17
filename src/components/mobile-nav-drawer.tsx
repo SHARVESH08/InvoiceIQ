@@ -2,16 +2,17 @@
 
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { SidebarNav } from '@/components/nav/sidebar-nav'
-import { getNavItems, type NavContext } from '@/components/nav/nav-items'
+import { getNavItems, getCustomerNavItems, type NavContext } from '@/components/nav/nav-items'
 import { LogoutButton } from '@/components/logout-button'
 
 interface Props extends NavContext {
   open: boolean
   onOpenChange: (open: boolean) => void
+  variant?: 'business' | 'customer'
 }
 
-export function MobileNavDrawer({ open, onOpenChange, ...ctx }: Props) {
-  const { main, footer } = getNavItems(ctx)
+export function MobileNavDrawer({ open, onOpenChange, variant = 'business', ...ctx }: Props) {
+  const { main, footer } = variant === 'customer' ? getCustomerNavItems() : getNavItems(ctx)
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-[280px] bg-card p-0">

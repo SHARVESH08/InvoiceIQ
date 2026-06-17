@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button'
 import { MobileNavDrawer } from '@/components/mobile-nav-drawer'
 import type { NavContext } from '@/components/nav/nav-items'
 
-export function MobileHeader(props: NavContext) {
+export function MobileHeader({
+  variant,
+  ...props
+}: NavContext & { variant?: 'business' | 'customer' }) {
   const [open, setOpen] = useState(false)
   return (
     <header className="flex md:hidden sticky top-0 z-50 h-14 items-center border-b bg-background px-4">
@@ -21,7 +24,7 @@ export function MobileHeader(props: NavContext) {
       </Button>
       <span className="flex-1 text-center text-base font-semibold">InvoiceIQ</span>
       <div className="w-10" aria-hidden />
-      <MobileNavDrawer open={open} onOpenChange={setOpen} {...props} />
+      <MobileNavDrawer open={open} onOpenChange={setOpen} variant={variant} {...props} />
     </header>
   )
 }
