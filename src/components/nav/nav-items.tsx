@@ -31,6 +31,28 @@ export interface NavContext {
   poPendingCount?: number
 }
 
+export interface NavGroups {
+  main: NavItem[]
+  footer: NavItem[]
+}
+
+/**
+ * Customer-portal nav model. The customer area is cross-tenant (invoices from
+ * every business by email match) and only has two destinations, but it reuses
+ * the same shell (Sidebar / MobileNavDrawer) as the business app for a
+ * consistent revamped look.
+ */
+export function getCustomerNavItems(): NavGroups {
+  return {
+    main: [
+      { href: '/my', label: 'My Invoices', icon: FileText, match: 'exact' },
+    ],
+    footer: [
+      { href: '/my/settings', label: 'Settings', icon: Settings },
+    ],
+  }
+}
+
 /**
  * Ordered, role-filtered nav model. Preserves the gating rules from the
  * previous nav-links.tsx. Pure data so it can be unit-tested and reused by

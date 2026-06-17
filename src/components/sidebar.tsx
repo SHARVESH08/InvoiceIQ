@@ -7,18 +7,21 @@ import { MenuToggle } from '@/components/ui/menu-toggle'
 import { LogoutButton } from '@/components/logout-button'
 import { SidebarNav } from '@/components/nav/sidebar-nav'
 import { BrandMark } from '@/components/ui/brand-mark'
-import { getNavItems, type NavContext } from '@/components/nav/nav-items'
+import { getNavItems, getCustomerNavItems, type NavContext } from '@/components/nav/nav-items'
 
 const COOKIE = 'sidebar_collapsed'
 
 interface SidebarProps extends NavContext {
   userEmail: string
   defaultCollapsed?: boolean
+  /** Which nav model + home link to render. Defaults to the business app. */
+  variant?: 'business' | 'customer'
 }
 
-export function Sidebar({ userEmail, defaultCollapsed = false, ...ctx }: SidebarProps) {
+export function Sidebar({ userEmail, defaultCollapsed = false, variant = 'business', ...ctx }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
-  const { main, footer } = getNavItems(ctx)
+  const { main, footer } = variant === 'customer' ? getCustomerNavItems() : getNavItems(ctx)
+  const homeHref = variant === 'customer' ? '/my' : '/dashboard'
 
   function setExpanded(open: boolean) {
     const nextCollapsed = !open
@@ -46,7 +49,7 @@ export function Sidebar({ userEmail, defaultCollapsed = false, ...ctx }: Sidebar
           collapsed ? 'flex-col h-auto gap-2 py-3' : 'gap-2',
         )}
       >
-        <Link href="/dashboard" className="flex items-center gap-2" aria-label="InvoiceIQ home">
+        <Link href={homeHref} className="flex items-center gap-2" aria-label="InvoiceIQ home">
           <BrandMark size={28} priority />
           {!collapsed && <span className="font-display text-base font-semibold">InvoiceIQ</span>}
         </Link>
