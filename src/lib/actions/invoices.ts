@@ -667,7 +667,8 @@ export async function markAsSent(
   let pdfBuffer: Buffer
   try {
     pdfBuffer = await generateInvoicePdf(invoiceForPdf)
-  } catch {
+  } catch (err) {
+    console.error('[markAsSent] generateInvoicePdf failed:', err)
     return { error: 'Failed to generate PDF. Invoice not sent.' }
   }
 
@@ -675,7 +676,8 @@ export async function markAsSent(
   try {
     const adminClient = createAdminClient()
     pdfUrl = await uploadPdfToStorage(adminClient, pdfBuffer, existing.id)
-  } catch {
+  } catch (err) {
+    console.error('[markAsSent] uploadPdfToStorage failed:', err)
     return { error: 'Failed to upload PDF. Invoice not sent.' }
   }
 
@@ -689,7 +691,8 @@ export async function markAsSent(
       customer_email: existing.customer_email,
       customer_phone: existing.customer_phone,
     })
-  } catch {
+  } catch (err) {
+    console.error('[markAsSent] createPaymentLink failed:', err)
     return { error: 'Failed to generate payment link. Invoice not sent.' }
   }
 
