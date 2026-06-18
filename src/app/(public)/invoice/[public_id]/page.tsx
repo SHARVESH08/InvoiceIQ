@@ -140,7 +140,7 @@ export default async function PublicInvoicePage({ params }: { params: { public_i
         {/* [A] Page header bar */}
         <div className="flex items-center justify-between bg-card rounded-xl shadow-sm p-5 border">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-lg flex-shrink-0">
               {companyInitials}
             </div>
             <div>
