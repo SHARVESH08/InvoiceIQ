@@ -7,10 +7,11 @@ import { AddProductStep } from './_components/add-product-step'
 import { CreateInvoiceStep } from './_components/create-invoice-step'
 
 interface OnboardingPageProps {
-  searchParams: { step?: string }
+  searchParams: Promise<{ step?: string }>
 }
 
-export default async function OnboardingPage({ searchParams }: OnboardingPageProps) {
+export default async function OnboardingPage(props: OnboardingPageProps) {
+  const searchParams = await props.searchParams;
   const supabase = await createClient()
 
   const {

@@ -63,7 +63,8 @@ const formatINR = (n: number) =>
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────
 
-export async function generateMetadata({ params }: { params: { public_id: string } }) {
+export async function generateMetadata(props: { params: Promise<{ public_id: string }> }) {
+  const params = await props.params;
   const supabase = createAdminClient()
   const { data } = await supabase
     .from('invoices')
@@ -93,7 +94,8 @@ function NotFound() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function PublicInvoicePage({ params }: { params: { public_id: string } }) {
+export default async function PublicInvoicePage(props: { params: Promise<{ public_id: string }> }) {
+  const params = await props.params;
   const supabase = createAdminClient()
 
   const { data, error } = await supabase

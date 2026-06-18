@@ -7,10 +7,11 @@ import { CustomerInvoiceTable } from './_components/customer-invoice-table'
 import { CustomerChartPanel } from './_components/customer-chart-panel'
 
 interface Props {
-  searchParams: { page?: string }
+  searchParams: Promise<{ page?: string }>
 }
 
-export default async function MyInvoicesPage({ searchParams }: Props) {
+export default async function MyInvoicesPage(props: Props) {
+  const searchParams = await props.searchParams;
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/customer/login')

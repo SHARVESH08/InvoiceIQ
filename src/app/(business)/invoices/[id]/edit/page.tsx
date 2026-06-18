@@ -5,7 +5,7 @@ import { InvoiceForm } from '@/components/invoices/invoice-form'
 import type { InvoiceInput } from '@/lib/schemas/invoice'
 
 interface EditInvoicePageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 // Maps the DB invoice row + invoice_items into InvoiceInput shape for form defaultValues
@@ -36,7 +36,8 @@ function mapInvoiceToFormValues(
   }
 }
 
-export default async function EditInvoicePage({ params }: EditInvoicePageProps) {
+export default async function EditInvoicePage(props: EditInvoicePageProps) {
+  const params = await props.params;
   const supabase = await createClient()
 
   const { data: companyId } = await supabase.rpc('get_company_id')

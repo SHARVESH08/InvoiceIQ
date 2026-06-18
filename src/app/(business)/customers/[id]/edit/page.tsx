@@ -3,10 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 import { CustomerEditForm } from './_customer-edit-form'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default async function EditCustomerPage({ params }: Props) {
+export default async function EditCustomerPage(props: Props) {
+  const params = await props.params;
   const supabase = await createClient()
 
   const { data: customer } = await supabase

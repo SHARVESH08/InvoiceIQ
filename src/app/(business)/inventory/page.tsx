@@ -3,10 +3,11 @@ import { getInventoryAggregated } from '@/lib/actions/inventory'
 import { InventoryTable } from './_components/inventory-table'
 
 interface Props {
-  searchParams: { q?: string; filter?: string; page?: string }
+  searchParams: Promise<{ q?: string; filter?: string; page?: string }>
 }
 
-export default async function InventoryPage({ searchParams }: Props) {
+export default async function InventoryPage(props: Props) {
+  const searchParams = await props.searchParams;
   const filter = searchParams.filter ?? ''
   const result = await getInventoryAggregated(filter)
 

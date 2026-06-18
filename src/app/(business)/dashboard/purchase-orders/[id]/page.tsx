@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, Loader2 } from 'lucide-react'
@@ -94,11 +94,12 @@ interface GodownRow {
   id: string
 }
 
-export default function PurchaseOrderDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default function PurchaseOrderDetailPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = use(props.params);
   const router = useRouter()
   const poId = params.id
 

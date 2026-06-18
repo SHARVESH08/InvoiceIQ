@@ -23,7 +23,7 @@ import {
 import type { InventoryStatus } from '@/lib/actions/inventory'
 
 interface Props {
-  params: { product_id: string }
+  params: Promise<{ product_id: string }>
 }
 
 function InventoryStatusBadge({ status }: { status: InventoryStatus }) {
@@ -48,7 +48,8 @@ function InventoryStatusBadge({ status }: { status: InventoryStatus }) {
   )
 }
 
-export default async function InventoryProductPage({ params }: Props) {
+export default async function InventoryProductPage(props: Props) {
+  const params = await props.params;
   const { product_id } = params
 
   const supabase = await createClient()

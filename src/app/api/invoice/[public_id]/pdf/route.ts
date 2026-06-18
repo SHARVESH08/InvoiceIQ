@@ -1,7 +1,8 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
-export async function GET(_req: Request, { params }: { params: { public_id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ public_id: string }> }) {
+  const params = await props.params;
   const supabase = createAdminClient()
 
   const { data, error } = await supabase

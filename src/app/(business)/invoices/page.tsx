@@ -10,10 +10,11 @@ interface InvoiceSearchParams {
 }
 
 interface Props {
-  searchParams: InvoiceSearchParams
+  searchParams: Promise<InvoiceSearchParams>
 }
 
-export default async function InvoicesPage({ searchParams }: Props) {
+export default async function InvoicesPage(props: Props) {
+  const searchParams = await props.searchParams;
   const page = Math.max(1, Number(searchParams.page ?? 1))
   const pageSize = 25
   const offset = (page - 1) * pageSize
