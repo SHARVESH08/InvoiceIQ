@@ -5,6 +5,7 @@ const defaultProps = {
   isAdmin: true,
   todaySales: 15000,
   lowStockCount: 5,
+  whatsappOrderCount: 3,
   revenueTrend: [],
   topProducts: [],
   paymentSplit: [],
@@ -28,9 +29,9 @@ describe('RetailerDashboard', () => {
     expect(screen.getByText('5')).toBeInTheDocument()
   })
 
-  it('renders WhatsApp Orders placeholder', () => {
+  it('renders the WhatsApp Orders widget with live count', () => {
     render(<RetailerDashboard {...defaultProps} />)
     expect(screen.getByText('WhatsApp Orders')).toBeInTheDocument()
-    expect(screen.getByText('WhatsApp orders coming soon')).toBeInTheDocument()
+    expect(screen.getByText('Invoices sent via WhatsApp')).toBeInTheDocument()
   })
 })

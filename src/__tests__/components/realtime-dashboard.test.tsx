@@ -1,11 +1,15 @@
 import { render, act } from '@testing-library/react'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
-// Capture the INSERT event callback so tests can invoke it directly
-let capturedCallback: (() => void) | null = null
-const mockUnsubscribe = jest.fn()
-const mockSubscribe = jest.fn()
+// Capture the INSERT event callback so tests can invoke it directly.
+// The real handler reads payload.new.company_id, so tests pass a matching payload.
+type InvoicePayload = { new: { company_id: string } }
+const insertPayload: InvoicePayload = { new: { company_id: 'test-id' } }
+let capturedCallback: ((payload: InvoicePayload) => void) | null = null
+const mockUnsubscribe = vi.fn()
+const mockSubscribe = vi.fn()
 
 // The channel object returned from .on(...) needs subscribe + unsubscribe
 // mockSubscribe returns the same channelRef so channel.unsubscribe() works
@@ -15,10 +19,10 @@ const channelRef = {
 }
 mockSubscribe.mockReturnValue(channelRef)
 
-jest.mock('@/lib/supabase/client', () => ({
+vi.mock('@/lib/supabase/client', () => ({
   createClient: () => ({
     channel: () => ({
-      on: (_event: string, _filter: object, cb: () => void) => {
+      on: (_event: string, _filter: object, cb: (payload: InvoicePayload) => void) => {
         capturedCallback = cb
         return channelRef
       },
@@ -26,8 +30,8 @@ jest.mock('@/lib/supabase/client', () => ({
   }),
 }))
 
-const mockRefresh = jest.fn()
-jest.mock('next/navigation', () => ({
+const mockRefresh = vi.fn()
+vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mockRefresh }),
 }))
 
@@ -36,14 +40,14 @@ import { RealtimeDashboard } from '@/components/realtime-dashboard'
 // ─────────────────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  jest.clearAllMocks()
+  vi.clearAllMocks()
   capturedCallback = null
   mockSubscribe.mockReturnValue(channelRef)
-  jest.useFakeTimers()
+  vi.useFakeTimers()
 })
 
 afterEach(() => {
-  jest.useRealTimers()
+  vi.useRealTimers()
 })
 
 describe('RealtimeDashboard', () => {
@@ -75,9 +79,9 @@ describe('RealtimeDashboard', () => {
 
     // Invoke INSERT callback 3 times in rapid succession
     act(() => {
-      capturedCallback!()
-      capturedCallback!()
-      capturedCallback!()
+      capturedCallback!(insertPayload)
+      capturedCallback!(insertPayload)
+      capturedCallback!(insertPayload)
     })
 
     // Debounce pending — no refresh yet
@@ -85,20 +89,20 @@ describe('RealtimeDashboard', () => {
 
     // Advance to 499ms — still not fired
     act(() => {
-      jest.advanceTimersByTime(499)
+      vi.advanceTimersByTime(499)
     })
     expect(mockRefresh).not.toHaveBeenCalled()
 
     // Advance 2ms more (501ms total since last event) — fires exactly once
     act(() => {
-      jest.advanceTimersByTime(2)
+      vi.advanceTimersByTime(2)
     })
     expect(mockRefresh).toHaveBeenCalledTimes(1)
 
     // Another burst + 500ms — fires second time
     act(() => {
-      capturedCallback!()
-      jest.advanceTimersByTime(500)
+      capturedCallback!(insertPayload)
+      vi.advanceTimersByTime(500)
     })
     expect(mockRefresh).toHaveBeenCalledTimes(2)
   })

@@ -3,27 +3,28 @@
  * Covers: PORTAL-05 (Zod validation, Supabase update, revalidatePath)
  */
 
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { updateEmailReminders } from '@/lib/actions/customer-settings'
 
 // Mock next/cache
-jest.mock('next/cache', () => ({
-  revalidatePath: jest.fn(),
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
 }))
 
 // Mock Supabase server client.
-// NOTE: jest.mock() is hoisted above these const declarations, so the factory
+// NOTE: vi.mock() is hoisted above these const declarations, so the factory
 // must reference the mocks lazily (inside arrow functions) — touching them
 // eagerly at factory-eval time throws a TDZ "before initialization" error.
-const mockUpdate = jest.fn()
-const mockEq = jest.fn()
-const mockGetUser = jest.fn()
+const mockUpdate = vi.fn()
+const mockEq = vi.fn()
+const mockGetUser = vi.fn()
 
-jest.mock('@/lib/supabase/server', () => ({
-  createClient: jest.fn().mockResolvedValue({
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn().mockResolvedValue({
     auth: {
       getUser: (...args: unknown[]) => mockGetUser(...args),
     },
-    from: jest.fn(() => ({
+    from: vi.fn(() => ({
       update: (...args: unknown[]) => {
         mockUpdate(...args)
         return { eq: (...eqArgs: unknown[]) => mockEq(...eqArgs) }
@@ -34,7 +35,7 @@ jest.mock('@/lib/supabase/server', () => ({
 
 describe('updateEmailReminders', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('validates input with Zod; rejects non-boolean [PORTAL-05 8-04-01]', async () => {
