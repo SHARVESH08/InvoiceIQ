@@ -47,3 +47,6 @@ nul
 .planning/
 .claude/
 .superpowers/
+
+# manual QA notes — not needed to run the app
+docs/MANUAL-TESTING-CHECKLIST.md
