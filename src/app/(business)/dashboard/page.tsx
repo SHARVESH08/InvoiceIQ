@@ -235,7 +235,8 @@ async function fetchRoleData(
         .select('customer_name, total_amount')
         .eq('company_id', companyId)
         .neq('payment_status', 'paid')
-        .neq('status', 'cancelled'), // cancelled invoices are void — not outstanding
+        // Receivables = issued only — exclude voided (cancelled) and unsent (draft).
+        .not('status', 'in', '(cancelled,draft)'),
       // Pending transfers count
       supabase
         .from('stock_transfers')

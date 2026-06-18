@@ -36,7 +36,8 @@ export default async function CustomersPage(props: Props) {
       .select('customer_id, total_amount')
       .in('customer_id', customerIds)
       .neq('payment_status', 'paid')
-      .neq('status', 'cancelled') // cancelled invoices are void — not outstanding
+      // Only issued invoices are receivables — exclude voided (cancelled) and unsent (draft).
+      .not('status', 'in', '(cancelled,draft)')
 
     if (invoices) {
       for (const inv of invoices) {
