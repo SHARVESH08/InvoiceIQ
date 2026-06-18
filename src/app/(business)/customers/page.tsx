@@ -2,10 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { CustomersTable } from './_components/customers-table'
 
 interface Props {
-  searchParams: { page?: string; q?: string }
+  searchParams: Promise<{ page?: string; q?: string }>
 }
 
-export default async function CustomersPage({ searchParams }: Props) {
+export default async function CustomersPage(props: Props) {
+  const searchParams = await props.searchParams;
   const page = Math.max(1, Number(searchParams.page ?? 1))
   const q = searchParams.q ?? ''
   const pageSize = 25

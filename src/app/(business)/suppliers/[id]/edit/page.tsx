@@ -3,10 +3,11 @@ import { createClient } from '@/lib/supabase/server'
 import { SupplierEditForm } from './_supplier-edit-form'
 
 interface Props {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default async function EditSupplierPage({ params }: Props) {
+export default async function EditSupplierPage(props: Props) {
+  const params = await props.params;
   const supabase = await createClient()
 
   const { data: supplier } = await supabase

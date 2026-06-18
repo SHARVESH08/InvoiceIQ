@@ -2,10 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { SuppliersTable } from './_components/suppliers-table'
 
 interface Props {
-  searchParams: { page?: string; q?: string }
+  searchParams: Promise<{ page?: string; q?: string }>
 }
 
-export default async function SuppliersPage({ searchParams }: Props) {
+export default async function SuppliersPage(props: Props) {
+  const searchParams = await props.searchParams;
   const page = Math.max(1, Number(searchParams.page ?? 1))
   const q = searchParams.q ?? ''
   const pageSize = 25

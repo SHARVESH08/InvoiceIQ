@@ -5,10 +5,11 @@ import { InvoiceForm } from '@/components/invoices/invoice-form'
 import type { InvoiceInput } from '@/lib/schemas/invoice'
 
 interface CreditNotePageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default async function CreditNotePage({ params }: CreditNotePageProps) {
+export default async function CreditNotePage(props: CreditNotePageProps) {
+  const params = await props.params;
   const supabase = await createClient()
 
   const { data: companyId } = await supabase.rpc('get_company_id')

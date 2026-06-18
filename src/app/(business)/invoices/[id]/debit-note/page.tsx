@@ -5,10 +5,11 @@ import { InvoiceForm } from '@/components/invoices/invoice-form'
 import type { InvoiceInput } from '@/lib/schemas/invoice'
 
 interface DebitNotePageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default async function DebitNotePage({ params }: DebitNotePageProps) {
+export default async function DebitNotePage(props: DebitNotePageProps) {
+  const params = await props.params;
   const supabase = await createClient()
 
   const { data: companyId } = await supabase.rpc('get_company_id')

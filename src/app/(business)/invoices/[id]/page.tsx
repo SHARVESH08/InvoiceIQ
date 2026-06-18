@@ -4,10 +4,11 @@ import { createClient } from '@/lib/supabase/server'
 import { InvoiceDetail, type InvoiceWithRelations } from './_components/invoice-detail'
 
 interface InvoiceDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
-export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
+export default async function InvoiceDetailPage(props: InvoiceDetailPageProps) {
+  const params = await props.params;
   const supabase = await createClient()
 
   const { data: companyId } = await supabase.rpc('get_company_id')
