@@ -31,7 +31,10 @@ function buildMonthlyData(invoices: ExportInvoiceRow[]): MonthlyBar[] {
   for (const inv of invoices) {
     // invoice_date is 'YYYY-MM-DD'
     const month = inv.invoice_date.slice(0, 7) // 'YYYY-MM'
-    map.set(month, (map.get(month) ?? 0) + inv.total_amount)
+    // Revenue is ex-GST (taxable_amount), matching the Revenue KPI above and the
+    // app-wide definition (migration 024 — collected GST is a liability, not income).
+    // total_amount (GST-inclusive) would overstate revenue and mismatch the KPI.
+    map.set(month, (map.get(month) ?? 0) + inv.taxable_amount)
   }
   return Array.from(map.entries())
     .sort(([a], [b]) => a.localeCompare(b))
