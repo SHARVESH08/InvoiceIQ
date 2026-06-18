@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { Resend } from 'resend'
+import { renderBrandedEmail, escapeHtml } from './template'
 
 /**
  * EMAIL-01 — Resend email with PDF attachment and payment link.
@@ -34,16 +35,35 @@ export async function sendInvoiceEmail(input: EmailInput): Promise<void> {
 
   const from = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev'
 
-  const html = `<p>Hello${input.companyName ? ` from ${input.companyName}` : ''},</p>
-<p>Please find your invoice <strong>${input.invoiceNumber}</strong> attached to this email.</p>
-<p><a href="${input.paymentLinkUrl}">Pay Now</a></p>
-<p>Thank you for your business.</p>`
+  const invoiceNumber = escapeHtml(input.invoiceNumber)
+  const companyName = input.companyName ? escapeHtml(input.companyName) : ''
+
+  const html = renderBrandedEmail({
+    preheader: `Your invoice ${input.invoiceNumber} is attached.`,
+    bodyHtml: `
+      <p style="margin:0 0 14px;">Hello${companyName ? ` from ${companyName}` : ''},</p>
+      <p style="margin:0 0 14px;">Please find your invoice <strong style="color:#18181b;">${invoiceNumber}</strong> attached to this email.</p>
+      <p style="margin:0 0 4px;">You can settle it securely using the button below.</p>`,
+    cta: { label: 'Pay Now', url: input.paymentLinkUrl },
+  })
+
+  // Plain-text fallback for clients that block HTML/images (deliverability).
+  const text = [
+    `Hello${input.companyName ? ` from ${input.companyName}` : ''},`,
+    '',
+    `Please find your invoice ${input.invoiceNumber} attached to this email.`,
+    '',
+    `Pay now: ${input.paymentLinkUrl}`,
+    '',
+    'Thank you for your business.',
+  ].join('\n')
 
   await resend.emails.send({
     from,
     to: [input.customerEmail],
     subject: `Invoice ${input.invoiceNumber} from ${input.companyName}`,
     html,
+    text,
     attachments: [{ filename: `${input.invoiceNumber}.pdf`, content: input.pdfBuffer }],
   })
 }

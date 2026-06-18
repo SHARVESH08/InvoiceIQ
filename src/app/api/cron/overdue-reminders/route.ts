@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { selectOverdueForReminder, type OverdueInvoice } from '@/lib/cron/overdue-reminders'
+import { renderBrandedEmail, escapeHtml, emailBaseUrl } from '@/lib/email/template'
 
 export const runtime = 'nodejs'
 
@@ -107,24 +108,43 @@ export async function POST(req: NextRequest) {
       // total_amount is stored in rupees (computeInvoiceTotals → roundToRupee), NOT paise
       const totalRupees = Number(row.total_amount).toFixed(2)
 
+      const customerName = row.customers?.name ?? 'Customer'
+
+      const text = [
+        `Dear ${customerName},`,
+        '',
+        `This is a reminder that invoice ${row.invoice_number} from ${companyName} is overdue by ${day} day(s).`,
+        '',
+        `Invoice number: ${row.invoice_number}`,
+        `Amount due:     ₹${totalRupees}`,
+        `Due date:       ${row.due_date}`,
+        '',
+        'Please arrange payment at your earliest convenience.',
+        '',
+        `Thank you,`,
+        companyName,
+      ].join('\n')
+
+      const html = renderBrandedEmail({
+        preheader: `Invoice ${row.invoice_number} is overdue by ${day} day(s).`,
+        bodyHtml: `
+          <p style="margin:0 0 14px;">Dear ${escapeHtml(customerName)},</p>
+          <p style="margin:0 0 14px;">This is a reminder that invoice <strong style="color:#18181b;">${escapeHtml(row.invoice_number)}</strong> from ${escapeHtml(companyName)} is overdue by <strong style="color:#18181b;">${day} day(s)</strong>.</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 16px;font-size:14px;color:#3f3f46;">
+            <tr><td style="padding:2px 16px 2px 0;color:#71717a;">Invoice number</td><td style="padding:2px 0;font-weight:600;">${escapeHtml(row.invoice_number)}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#71717a;">Amount due</td><td style="padding:2px 0;font-weight:600;">&#8377;${escapeHtml(totalRupees)}</td></tr>
+            <tr><td style="padding:2px 16px 2px 0;color:#71717a;">Due date</td><td style="padding:2px 0;font-weight:600;">${escapeHtml(String(row.due_date))}</td></tr>
+          </table>
+          <p style="margin:0 0 4px;">Please arrange payment at your earliest convenience.</p>`,
+        cta: { label: 'View your invoices', url: `${emailBaseUrl()}/my` },
+      })
+
       const { error: emailError } = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL!,
         to: invoice.customer_email!,
         subject: `Payment reminder: Invoice ${row.invoice_number} overdue by ${day} days`,
-        text: [
-          `Dear ${row.customers?.name ?? 'Customer'},`,
-          '',
-          `This is a reminder that invoice ${row.invoice_number} from ${companyName} is overdue by ${day} day(s).`,
-          '',
-          `Invoice number: ${row.invoice_number}`,
-          `Amount due:     ₹${totalRupees}`,
-          `Due date:       ${row.due_date}`,
-          '',
-          'Please arrange payment at your earliest convenience.',
-          '',
-          `Thank you,`,
-          companyName,
-        ].join('\n'),
+        html,
+        text,
       })
 
       if (emailError) {
