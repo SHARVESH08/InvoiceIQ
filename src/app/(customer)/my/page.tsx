@@ -24,7 +24,7 @@ export default async function MyInvoicesPage(props: Props) {
     supabase
       .from('invoices')
       .select(
-        'id, public_id, invoice_date, invoice_number, total_amount, payment_status, payment_link_url, companies(name)',
+        'id, public_id, invoice_date, invoice_number, total_amount, status, payment_status, payment_link_url, companies(name)',
         { count: 'exact' }
       )
       .order('invoice_date', { ascending: false })

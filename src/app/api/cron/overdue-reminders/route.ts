@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
         'id, due_date, payment_status, customer_email, invoice_number, total_amount, reminder_milestones_sent, company_id, companies(name), customers(name)'
       )
       .in('payment_status', ['unpaid', 'overdue'])
+      .neq('status', 'cancelled') // don't send payment reminders for voided invoices
       .not('customer_email', 'is', null)
 
     if (fetchError) {

@@ -189,6 +189,7 @@ async function fetchRoleData(
         .select('taxable_amount')
         .eq('company_id', companyId)
         .in('payment_status', ['partial', 'paid'])
+        .neq('status', 'cancelled') // exclude voided invoices from revenue
         .gte('invoice_date', mtdStartIST()),
       // Top distributors: group by customer_name, sum revenue DESC LIMIT 5 (ex-GST)
       // Approximation for Phase 7 — actual distributor link in Phase 12
@@ -197,6 +198,7 @@ async function fetchRoleData(
         .select('customer_name, taxable_amount')
         .eq('company_id', companyId)
         .in('payment_status', ['partial', 'paid'])
+        .neq('status', 'cancelled') // exclude voided invoices from revenue
         .order('taxable_amount', { ascending: false })
         .limit(50), // fetch more, aggregate client-side
     ])
@@ -232,7 +234,8 @@ async function fetchRoleData(
         .from('invoices')
         .select('customer_name, total_amount')
         .eq('company_id', companyId)
-        .neq('payment_status', 'paid'),
+        .neq('payment_status', 'paid')
+        .neq('status', 'cancelled'), // cancelled invoices are void — not outstanding
       // Pending transfers count
       supabase
         .from('stock_transfers')
@@ -275,6 +278,7 @@ async function fetchRoleData(
     .select('total_amount')
     .eq('company_id', companyId)
     .in('payment_status', ['partial', 'paid'])
+    .neq('status', 'cancelled') // exclude voided invoices from sales
     .eq('invoice_date', todayIST())
 
   const todaySales = (todaySalesResult.data ?? []).reduce(

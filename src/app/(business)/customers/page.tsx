@@ -36,6 +36,7 @@ export default async function CustomersPage(props: Props) {
       .select('customer_id, total_amount')
       .in('customer_id', customerIds)
       .neq('payment_status', 'paid')
+      .neq('status', 'cancelled') // cancelled invoices are void — not outstanding
 
     if (invoices) {
       for (const inv of invoices) {

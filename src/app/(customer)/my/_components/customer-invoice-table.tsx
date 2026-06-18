@@ -21,9 +21,18 @@ interface InvoiceRow {
   invoice_date: string
   invoice_number: string | null
   total_amount: number
+  status: string
   payment_status: string
   payment_link_url: string | null
   companies: { name: string } | { name: string }[] | null
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  paid: 'Paid',
+  partial: 'Partial',
+  unpaid: 'Unpaid',
+  cancelled: 'Cancelled',
+  sent: 'Sent',
 }
 
 interface Props {
@@ -76,6 +85,11 @@ export function CustomerInvoiceTable({ invoices, total, page }: Props) {
                 ? invoice.companies[0]?.name ?? 'Unknown'
                 : invoice.companies?.name ?? 'Unknown'
 
+              // A cancelled invoice is void — show its status, not the stale
+              // payment_status (which stays 'unpaid'/'partial' after cancelling).
+              const isCancelled = invoice.status === 'cancelled'
+              const displayStatus = isCancelled ? 'cancelled' : invoice.payment_status
+
               return (
                 <TableRow key={invoice.id}>
                   <TableCell>
@@ -86,11 +100,11 @@ export function CustomerInvoiceTable({ invoices, total, page }: Props) {
                   <TableCell>
                     <Badge
                       className={
-                        STATUS_CLASSES[invoice.payment_status] ??
+                        STATUS_CLASSES[displayStatus] ??
                         'bg-muted text-muted-foreground border-border'
                       }
                     >
-                      {invoice.payment_status}
+                      {STATUS_LABELS[displayStatus] ?? displayStatus}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -105,7 +119,8 @@ export function CustomerInvoiceTable({ invoices, total, page }: Props) {
                         Download PDF
                       </a>
                       {invoice.payment_link_url &&
-                        invoice.payment_status !== 'paid' && (
+                        invoice.payment_status !== 'paid' &&
+                        !isCancelled && (
                           <a
                             href={invoice.payment_link_url}
                             target="_blank"
