@@ -27,6 +27,8 @@ export default async function MyInvoicesPage(props: Props) {
         'id, public_id, invoice_date, invoice_number, total_amount, status, payment_status, payment_link_url, companies(name)',
         { count: 'exact' }
       )
+      // Customers only see issued invoices — never the business's unsent drafts.
+      .neq('status', 'draft')
       .order('invoice_date', { ascending: false })
       .range(offset, offset + pageSize - 1),
     supabase.rpc('get_customer_kpis'),
