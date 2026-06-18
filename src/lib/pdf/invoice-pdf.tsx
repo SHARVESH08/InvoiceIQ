@@ -248,7 +248,7 @@ export async function generateInvoicePdf(input: InvoiceForPdf): Promise<Buffer> 
         {/* Header */}
         <View style={styles.headerRow}>
           <View style={styles.logo}>
-            <Text style={styles.logoText}>{input.company.name.slice(0, 2).toUpperCase()}</Text>
+            <Text style={styles.logoText}>{(input.company.name ?? '').slice(0, 2).toUpperCase()}</Text>
           </View>
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>{input.company.name}</Text>
