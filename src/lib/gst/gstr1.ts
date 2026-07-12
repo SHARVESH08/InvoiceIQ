@@ -43,7 +43,8 @@ export interface B2csEntry {
 
 export type B2clEntry = B2bEntry
 
-export interface CdnrEntry {}
+// CDN-R section is not implemented yet; entries carry no fields.
+export type CdnrEntry = Record<string, never>
 
 export interface HsnEntry {
   hsn_sc: string

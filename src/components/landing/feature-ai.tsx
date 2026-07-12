@@ -17,7 +17,7 @@ export function FeatureAI() {
             </h2>
             <p className="mt-4 max-w-[48ch] leading-relaxed text-muted-foreground">
               An AI assistant that answers in plain language, and a GST filing helper that prepares
-              your returns. "What is my GST liability this quarter?" Answered.
+              your returns. &ldquo;What is my GST liability this quarter?&rdquo; Answered.
             </p>
           </div>
         </Reveal>

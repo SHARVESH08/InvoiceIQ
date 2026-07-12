@@ -19,24 +19,31 @@ interface HsnSummaryTabProps {
 }
 
 export function HsnSummaryTab({ from, to }: HsnSummaryTabProps) {
-  const [rows, setRows] = useState<HsnRow[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // Result keyed by the request params; `loading` is derived instead of set
+  // synchronously in the effect (react-hooks/set-state-in-effect). The key
+  // check also drops stale responses when from/to change mid-flight.
+  const key = `${from}|${to}`
+  const [result, setResult] = useState<{
+    key: string
+    rows?: HsnRow[]
+    error?: string
+  } | null>(null)
 
   useEffect(() => {
     if (!from || !to) return
-    setLoading(true)
-    setError(null)
-
-    getHsnSummary(from, to).then((result) => {
-      if ('error' in result) {
-        setError(result.error)
-      } else {
-        setRows(result.rows)
-      }
-      setLoading(false)
+    let stale = false
+    getHsnSummary(from, to).then((res) => {
+      if (stale) return
+      setResult('error' in res ? { key, error: res.error } : { key, rows: res.rows })
     })
-  }, [from, to])
+    return () => {
+      stale = true
+    }
+  }, [from, to, key])
+
+  const loading = Boolean(from && to) && result?.key !== key
+  const error = result?.key === key ? result.error ?? null : null
+  const rows = (result?.key === key ? result.rows : undefined) ?? []
 
   if (loading) {
     return <p className="text-sm text-muted-foreground py-6">Loading...</p>
