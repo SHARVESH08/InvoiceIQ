@@ -28,9 +28,16 @@ describe('getNavItems role gating', () => {
     expect(po.badge).toBe(3)
   })
 
-  it('returns Settings as the only footer item', () => {
+  it('returns Franchise + Settings as the footer items', () => {
     const { footer } = getNavItems({})
-    expect(footer.map((i) => i.label)).toEqual(['Settings'])
+    expect(footer.map((i) => i.label)).toEqual(['Franchise', 'Settings'])
+  })
+
+  it('hides HQ by default and leads with it for franchise owners', () => {
+    expect(getNavItems({}).main.map((i) => i.label)).not.toContain('HQ')
+    const ownerLabels = getNavItems({ isFranchiseOwner: true }).main.map((i) => i.label)
+    expect(ownerLabels[0]).toBe('HQ')
+    expect(ownerLabels[1]).toBe('Dashboard')
   })
 
   it('places Pricing Alerts in main immediately after Chat', () => {

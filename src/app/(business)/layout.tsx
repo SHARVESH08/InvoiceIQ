@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { getCachedLowStockCount } from '@/lib/cache/low-stock'
+import { getFranchiseGroupId, getMyMemberships, type Membership } from '@/lib/actions/franchise'
 import { MobileHeader } from '@/components/mobile-header'
 import { ResumeBanner } from '@/components/resume-banner'
 import { Sidebar } from '@/components/sidebar'
@@ -36,6 +37,20 @@ export default async function BusinessLayout({
   let poPendingCount = 0
   let onboardingStep = 0
   let onboardingCompleted = true // default true = no banner shown on error
+  let isFranchiseOwner = false
+  let memberships: Membership[] = []
+  try {
+    // Franchise context: HQ nav gate + company switcher. Failure never breaks the shell.
+    const [groupId, membershipRows] = await Promise.all([
+      getFranchiseGroupId().catch(() => null),
+      getMyMemberships().catch(() => [] as Membership[]),
+    ])
+    isFranchiseOwner = groupId !== null
+    memberships = membershipRows
+  } catch {
+    isFranchiseOwner = false
+    memberships = []
+  }
   try {
     const [{ data: companyId }, { data: companyCtx }] = await Promise.all([
       supabase.rpc('get_company_id'),
@@ -100,6 +115,8 @@ export default async function BusinessLayout({
         companyType={companyType}
         lowStockCount={lowStockCount}
         poPendingCount={poPendingCount}
+        isFranchiseOwner={isFranchiseOwner}
+        memberships={memberships}
         defaultCollapsed={defaultCollapsed}
       />
       <div className="flex min-w-0 flex-1 flex-col">
@@ -107,6 +124,7 @@ export default async function BusinessLayout({
           lowStockCount={lowStockCount}
           companyType={companyType}
           poPendingCount={poPendingCount}
+          isFranchiseOwner={isFranchiseOwner}
         />
         <main className="flex-1 p-6">
           {!onboardingCompleted && <ResumeBanner step={onboardingStep} />}

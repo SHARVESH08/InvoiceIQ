@@ -7,7 +7,9 @@ import { MenuToggle } from '@/components/ui/menu-toggle'
 import { LogoutButton } from '@/components/logout-button'
 import { SidebarNav } from '@/components/nav/sidebar-nav'
 import { BrandMark } from '@/components/ui/brand-mark'
+import { CompanySwitcher } from '@/components/nav/company-switcher'
 import { getNavItems, getCustomerNavItems, type NavContext } from '@/components/nav/nav-items'
+import type { Membership } from '@/lib/actions/franchise'
 
 const COOKIE = 'sidebar_collapsed'
 
@@ -16,9 +18,17 @@ interface SidebarProps extends NavContext {
   defaultCollapsed?: boolean
   /** Which nav model + home link to render. Defaults to the business app. */
   variant?: 'business' | 'customer'
+  /** Companies the user belongs to; the switcher renders only for 2+. */
+  memberships?: Membership[]
 }
 
-export function Sidebar({ userEmail, defaultCollapsed = false, variant = 'business', ...ctx }: SidebarProps) {
+export function Sidebar({
+  userEmail,
+  defaultCollapsed = false,
+  variant = 'business',
+  memberships = [],
+  ...ctx
+}: SidebarProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
   const { main, footer } = variant === 'customer' ? getCustomerNavItems() : getNavItems(ctx)
   const homeHref = variant === 'customer' ? '/my' : '/dashboard'
@@ -62,6 +72,11 @@ export function Sidebar({ userEmail, defaultCollapsed = false, variant = 'busine
           />
         </div>
       </div>
+
+      {/* Company switcher (multi-membership users only) */}
+      {variant === 'business' && (
+        <CompanySwitcher memberships={memberships} collapsed={collapsed} />
+      )}
 
       {/* Main nav (scrolls) */}
       <div className="flex-1 overflow-y-auto px-2 py-3">
