@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>InvoiceIQ - Landing v2 mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<style>
+  :root{
+    --bg:#110f0d; --bg-2:#171412; --card:#1a1714; --line:#2c2620;
+    --ink:#ece5d8; --ink-dim:#9c927f; --ink-faint:#6b6355;
+    --gold:#f0a11d; --gold-soft:#f0a11d26; --gold-deep:#8a5c0e;
+    --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Space Grotesk',system-ui,sans-serif;
+    font-size:16px; line-height:1.6; overflow-x:hidden;
+  }
+  ::selection{background:var(--gold);color:#171410}
+  .display{font-family:'Clash Display',sans-serif;letter-spacing:-0.02em}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  .wrap{max-width:1400px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
+  section{padding:clamp(96px,12vw,180px) 0}
+  a{color:inherit;text-decoration:none}
+  .grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E")}
+
+  /* ── Nav: floating glass pill ─────────────────────────────── */
+  nav{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:50;
+    display:flex;align-items:center;gap:6px;height:60px;padding:0 10px 0 22px;
+    border-radius:999px;border:1px solid #ffffff14;
+    background:#171410cc;backdrop-filter:blur(18px) saturate(160%);
+    box-shadow:inset 0 1px 0 #ffffff0f, 0 16px 48px #00000059}
+  nav .brand{display:flex;align-items:center;gap:10px;margin-right:22px;font-weight:600}
+  nav .brand .mark{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;
+    background:linear-gradient(140deg,var(--gold),#c77e10);color:#171410;font-family:'Clash Display';font-weight:700;font-size:15px}
+  nav .links{display:flex;gap:2px}
+  nav .links a{padding:9px 14px;border-radius:999px;font-size:14.5px;color:var(--ink-dim);transition:color .2s,background .2s;cursor:pointer}
+  nav .links a:hover{color:var(--ink);background:#ffffff0a}
+  .btn{display:inline-flex;align-items:center;gap:9px;border-radius:999px;font-weight:600;cursor:pointer;
+    transition:transform .2s cubic-bezier(.16,1,.3,1),box-shadow .2s,background .2s;white-space:nowrap}
+  .btn:active{transform:translateY(1px) scale(.98)}
+  .btn-gold{background:linear-gradient(140deg,#f6b23a,var(--gold) 55%,#d88f12);color:#1a1408;
+    box-shadow:inset 0 1px 0 #ffffff4d, 0 8px 28px #f0a11d33}
+  .btn-gold:hover{box-shadow:inset 0 1px 0 #ffffff4d, 0 10px 36px #f0a11d4d;transform:translateY(-2px)}
+  .btn-ghost{border:1px solid var(--line);color:var(--ink);background:#ffffff08}
+  .btn-ghost:hover{background:#ffffff0f;transform:translateY(-2px)}
+  nav .btn{height:40px;padding:0 20px;font-size:14.5px}
+
+  /* ── Hero ─────────────────────────────────────────────────── */
+  .hero{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;position:relative;padding-top:96px;padding-bottom:0}
+  .hero-glow{position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(52% 42% at 50% 8%, #f0a11d17 0%, transparent 70%),
+      radial-gradient(70% 55% at 50% 110%, #f0a11d0d 0%, transparent 60%)}
+  .hero h1{font-size:clamp(2.9rem,6vw,5.4rem);line-height:1.02;font-weight:600;max-width:1120px}
+  .hero h1 .gold-i{color:var(--gold);font-style:italic;padding-right:.04em}
+  .hero p{margin:26px auto 0;max-width:52ch;font-size:clamp(1rem,1.4vw,1.2rem);color:var(--ink-dim)}
+  .hero .ctas{display:flex;gap:14px;margin-top:38px;flex-wrap:wrap;justify-content:center}
+  .hero .ctas .btn{height:54px;padding:0 30px;font-size:16px}
+
+  /* product preview: this is the proposed v2 dashboard itself, not a fake */
+  .preview{margin-top:clamp(48px,7vw,84px);width:min(1060px,92vw);position:relative}
+  .preview .frame{border-radius:20px 20px 0 0;border:1px solid var(--line);border-bottom:none;
+    background:linear-gradient(180deg,var(--bg-2),var(--card));
+    box-shadow:0 -1px 0 #ffffff0a inset, 0 40px 120px #000000a6;overflow:hidden}
+  .preview .bar{display:flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-bottom:1px solid var(--line)}
+  .preview .bar i{color:var(--ink-faint);font-size:15px}
+  .preview .bar .addr{margin-left:6px;font-size:12.5px;color:var(--ink-faint)}
+  .preview .body{display:grid;grid-template-columns:200px 1fr;min-height:380px}
+  .preview .side{border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:3px;text-align:left}
+  .preview .side .co{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:#ffffff08;border:1px solid var(--line);margin-bottom:12px}
+  .preview .side .co b{font-size:12.5px;font-weight:600;display:block;line-height:1.25}
+  .preview .side .co small{font-size:10.5px;color:var(--gold)}
+  .preview .side a{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:9px;font-size:12.5px;color:var(--ink-dim)}
+  .preview .side a.on{background:var(--gold-soft);color:var(--gold)}
+  .preview .main{padding:20px;text-align:left}
+  .preview .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .preview .kpi{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#ffffff05}
+  .preview .kpi small{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em}
+  .preview .kpi b{display:block;font-size:19px;margin-top:4px;font-family:'IBM Plex Mono';font-weight:500}
+  .preview .kpi em{font-style:normal;font-size:10.5px;color:#7fbf6e}
+  .preview .chartrow{display:grid;grid-template-columns:1.6fr 1fr;gap:10px;margin-top:10px}
+  .preview .panel{border:1px solid var(--line);border-radius:12px;padding:14px;background:#ffffff05}
+  .preview .panel h4{font-size:12px;font-weight:500;color:var(--ink-dim);margin-bottom:10px}
+  .preview svg text{font-family:'IBM Plex Mono';font-size:8.5px;fill:var(--ink-faint)}
+  .preview .rows .r{display:flex;justify-content:space-between;font-size:11.5px;padding:7px 0;border-bottom:1px solid #ffffff0a}
+  .preview .rows .r:last-child{border-bottom:none}
+  .preview .rows .r b{font-family:'IBM Plex Mono';font-weight:500}
+
+  /* ── Stats strip ──────────────────────────────────────────── */
+  .stats{padding:0}
+  .stats .row{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stats .cell{padding:clamp(28px,4vw,52px) clamp(16px,3vw,44px);border-left:1px solid var(--line)}
+  .stats .cell:first-child{border-left:none}
+  .stats b{display:block;font-family:'Clash Display';font-size:clamp(1.9rem,3.4vw,3rem);font-weight:600}
+  .stats b .u{color:var(--gold)}
+  .stats span{font-size:13.5px;color:var(--ink-dim)}
+
+  /* ── Section headers ──────────────────────────────────────── */
+  .sec-head{max-width:820px;margin-bottom:clamp(40px,6vw,72px)}
+  .sec-head.center{margin-left:auto;margin-right:auto;text-align:center}
+  .eyebrow{font-family:'IBM Plex Mono';font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:16px}
+  .sec-head h2{font-size:clamp(2rem,4vw,3.3rem);line-height:1.06;font-weight:600}
+  .sec-head p{margin-top:16px;color:var(--ink-dim);max-width:58ch;font-size:1.05rem}
+  .sec-head.center p{margin-left:auto;margin-right:auto}
+
+  /* ── Sticky feature stack ─────────────────────────────────── */
+  .stack-card{position:sticky;top:0;min-height:100dvh;display:flex;align-items:center}
+  .stack-card .inner{width:100%;display:grid;grid-template-columns:1fr 1.15fr;gap:clamp(28px,5vw,72px);
+    align-items:center;border:1px solid var(--line);border-radius:24px;
+    padding:clamp(28px,4.5vw,64px);background:linear-gradient(160deg,var(--bg-2),var(--card))}
+  .stack-card h3{font-family:'Clash Display';font-size:clamp(1.7rem,3vw,2.6rem);font-weight:600;line-height:1.08}
+  .stack-card .copy p{margin-top:16px;color:var(--ink-dim);max-width:44ch}
+  .stack-card .copy ul{margin-top:22px;display:flex;flex-direction:column;gap:12px;list-style:none}
+  .stack-card .copy li{display:flex;gap:11px;align-items:flex-start;font-size:15px;color:var(--ink)}
+  .stack-card .copy li i{color:var(--gold);font-size:18px;margin-top:2px}
+  .stack-card .visual{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);min-height:320px;position:relative;background:var(--bg)}
+  .stack-card .visual img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;
+    filter:grayscale(35%) contrast(1.1) brightness(.72)}
+  .stack-card .visual .veil{position:absolute;inset:0;background:linear-gradient(200deg,transparent 30%,#110f0dd9)}
+  .stack-card .visual .chip{position:absolute;left:18px;bottom:18px;display:flex;align-items:center;gap:10px;
+    padding:10px 16px;border-radius:12px;background:#171410e6;border:1px solid var(--line);backdrop-filter:blur(10px)}
+  .stack-card .visual .chip i{color:var(--gold);font-size:18px}
+  .stack-card .visual .chip b{font-size:13px;font-weight:600;display:block}
+  .stack-card .visual .chip small{font-size:11px;color:var(--ink-dim)}
+
+  /* ── HQ section ───────────────────────────────────────────── */
+  .hq .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,4vw,56px);align-items:stretch}
+  .hq-table{border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--bg-2)}
+  .hq-table .th,.hq-table .tr{display:grid;grid-template-columns:1.6fr 1fr 1fr .8fr;gap:8px;padding:14px 20px;align-items:center}
+  .hq-table .th{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-faint);border-bottom:1px solid var(--line);font-family:'IBM Plex Mono'}
+  .hq-table .tr{border-bottom:1px solid #ffffff08;font-size:14px;transition:background .2s;cursor:pointer}
+  .hq-table .tr:hover{background:#ffffff06}
+  .hq-table .tr:last-child{border-bottom:none}
+  .hq-table .tr b{font-weight:600}
+  .hq-table .tr small{display:block;font-size:11.5px;color:var(--ink-faint)}
+  .hq-table .num{font-family:'IBM Plex Mono';font-size:13.5px}
+  .hq-table .pos{color:#7fbf6e}.hq-table .neg{color:#d98a7a}
+  .hq-side{display:flex;flex-direction:column;gap:18px;justify-content:center}
+  .hq-side h2{font-size:clamp(1.9rem,3.4vw,2.9rem);line-height:1.07;font-weight:600}
+  .hq-side p{color:var(--ink-dim);max-width:46ch}
+  .hq-side .pts{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+  .hq-side .pt{display:flex;gap:12px}
+  .hq-side .pt i{color:var(--gold);font-size:20px;margin-top:2px}
+  .hq-side .pt b{display:block;font-size:15px;font-weight:600}
+  .hq-side .pt span{font-size:13.5px;color:var(--ink-dim)}
+
+  /* ── CRM section ──────────────────────────────────────────── */
+  .crm .board{display:grid;grid-template-columns:repeat(4,minmax(230px,1fr));gap:14px;overflow-x:auto;padding-bottom:8px}
+  .col{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-2);padding:14px;min-width:230px}
+  .col .col-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .col .col-h b{font-size:13px;font-weight:600}
+  .col .col-h span{font-family:'IBM Plex Mono';font-size:11px;color:var(--ink-faint)}
+  .deal{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:12px 14px;margin-bottom:10px;
+    transition:transform .25s cubic-bezier(.16,1,.3,1),border-color .25s;cursor:grab}
+  .deal:hover{transform:translateY(-3px);border-color:#f0a11d4d}
+  .deal b{font-size:13.5px;font-weight:600;display:block;line-height:1.35}
+  .deal .who{font-size:11.5px;color:var(--ink-faint);margin-top:3px}
+  .deal .val{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+  .deal .val b{font-family:'IBM Plex Mono';font-size:13px;color:var(--gold);font-weight:500}
+  .deal .due{font-size:10.5px;color:var(--ink-faint)}
+  .deal .due.hot{color:#d98a7a}
+
+  /* ── Quote ────────────────────────────────────────────────── */
+  .quote{text-align:center}
+  .quote blockquote{font-family:'Clash Display';font-size:clamp(1.5rem,3vw,2.4rem);font-weight:500;line-height:1.25;max-width:920px;margin:0 auto}
+  .quote blockquote .g{color:var(--gold)}
+  .quote .who{margin-top:28px;display:flex;align-items:center;justify-content:center;gap:14px}
+  .quote .who img{width:46px;height:46px;border-radius:999px;object-fit:cover;border:1px solid var(--line);filter:grayscale(20%)}
+  .quote .who b{display:block;font-size:14.5px;text-align:left}
+  .quote .who span{font-size:12.5px;color:var(--ink-dim)}
+
+  /* ── Final CTA ────────────────────────────────────────────── */
+  .final{position:relative;text-align:center}
+  .final .glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(46% 60% at 50% 100%,#f0a11d1a,transparent 70%)}
+  .final h2{font-size:clamp(2.4rem,5.4vw,4.6rem);line-height:1.02;font-weight:600;max-width:980px;margin:0 auto}
+  .final p{margin:22px auto 0;color:var(--ink-dim);max-width:44ch}
+  .final .btn{height:58px;padding:0 36px;font-size:17px;margin-top:38px}
+
+  footer{border-top:1px solid var(--line);padding:44px 0;font-size:13.5px;color:var(--ink-faint)}
+  footer .row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px}
+  footer .links{display:flex;gap:26px}
+  footer a:hover{color:var(--ink)}
+
+  /* reveal defaults (JS sets initial states only when motion is allowed) */
+  @media (max-width:900px){
+    nav .links{display:none}
+    .stack-card .inner,.hq .grid{grid-template-columns:1fr}
+    .stats .row{grid-template-columns:1fr 1fr}
+    .stats .cell{border-top:1px solid var(--line)}
+    .preview .body{grid-template-columns:1fr}
+    .preview .side{display:none}
+    .preview .kpis{grid-template-columns:1fr 1fr}
+    .preview .chartrow{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<nav>
+  <a class="brand" href="#"><span class="mark">iQ</span>InvoiceIQ</a>
+  <div class="links">
+    <a href="#features">Features</a>
+    <a href="#hq">Franchise HQ</a>
+    <a href="#crm">CRM</a>
+    <a href="#pricing">Pricing</a>
+  </div>
+  <a class="btn btn-gold" href="#">Start free</a>
+</nav>
+
+<!-- ATTENTION -->
+<header class="hero">
+  <div class="hero-glow"></div>
+  <div class="wrap" style="display:flex;flex-direction:column;align-items:center">
+    <h1 class="display">Every invoice, every showroom,<br>one <span class="gold-i">command</span> center.</h1>
+    <p>GST billing, live inventory, WhatsApp orders and an AI that answers your books. Built for Indian businesses.</p>
+    <div class="ctas">
+      <a class="btn btn-gold" href="#">Start free</a>
+      <a class="btn btn-ghost" href="#hq"><i class="ph ph-play"></i>See it live</a>
+    </div>
+
+    <!-- Live preview of the proposed v2 dashboard shell -->
+    <div class="preview" id="preview">
+      <div class="frame">
+        <div class="bar">
+          <i class="ph ph-arrow-left"></i><i class="ph ph-arrow-right"></i>
+          <span class="addr mono">app.invoiceiq.in/hq</span>
+        </div>
+        <div class="body">
+          <div class="side">
+            <div class="co">
+              <div>
+                <b>Sharma Auto Group</b>
+                <small>HQ · 5 showrooms</small>
+              </div>
+            </div>
+            <a class="on"><i class="ph ph-squares-four"></i>HQ Overview</a>
+            <a><i class="ph ph-storefront"></i>Showrooms</a>
+            <a><i class="ph ph-file-text"></i>Invoices</a>
+            <a><i class="ph ph-package"></i>Inventory</a>
+            <a><i class="ph ph-kanban"></i>CRM</a>
+            <a><i class="ph ph-sparkle"></i>Ask AI</a>
+          </div>
+          <div class="main">
+            <div class="kpis">
+              <div class="kpi"><small>Group revenue MTD</small><b>₹18.4L</b><em>+12.6% vs June</em></div>
+              <div class="kpi"><small>Outstanding</small><b>₹3.2L</b><em>41 invoices</em></div>
+              <div class="kpi"><small>Invoices MTD</small><b>1,284</b><em>+214 this week</em></div>
+              <div class="kpi"><small>Low stock alerts</small><b>17</b><em>3 critical</em></div>
+            </div>
+            <div class="chartrow">
+              <div class="panel">
+                <h4>Revenue trend, all showrooms</h4>
+                <svg viewBox="0 0 420 130" width="100%" height="130" role="img" aria-label="Revenue trend chart">
+                  <defs>
+                    <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="#f0a11d" stop-opacity=".28"/>
+                      <stop offset="1" stop-color="#f0a11d" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0 96 C40 88 62 70 96 74 C130 78 150 52 190 56 C230 60 250 40 292 44 C330 47 356 26 420 22 L420 130 L0 130 Z" fill="url(#area)"/>
+                  <path d="M0 96 C40 88 62 70 96 74 C130 78 150 52 190 56 C230 60 250 40 292 44 C330 47 356 26 420 22" fill="none" stroke="#f0a11d" stroke-width="2"/>
+                  <text x="2" y="126">Feb</text><text x="105" y="126">Mar</text><text x="208" y="126">May</text><text x="318" y="126">Jun</text><text x="398" y="126">Jul</text>
+                </svg>
+              </div>
+              <div class="panel rows">
+                <h4>Showrooms today</h4>
+                <div class="r"><span>Andheri West</span><b>₹1,42,300</b></div>
+                <div class="r"><span>Borivali</span><b>₹98,750</b></div>
+                <div class="r"><span>Thane</span><b>₹87,210</b></div>
+                <div class="r"><span>Pune FC Road</span><b>₹63,480</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- proof strip -->
+<div class="stats">
+  <div class="wrap" style="padding:0">
+    <div class="row">
+      <div class="cell"><b><span class="counter" data-to="42">0</span><span class="u">L+</span></b><span>invoices generated</span></div>
+      <div class="cell"><b>₹<span class="counter" data-to="380">0</span><span class="u">Cr</span></b><span>billed through the platform</span></div>
+      <div class="cell"><b><span class="counter" data-to="2400">0</span><span class="u">+</span></b><span>businesses on board</span></div>
+      <div class="cell"><b><span class="counter" data-to="99">0</span><span class="u">.9%</span></b><span>GST filings accepted first try</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- INTEREST: sticky stack -->
+<section id="features" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="sec-head center">
+      <span class="eyebrow">The core, sharpened</span>
+      <h2 class="display">Three engines under one roof.</h2>
+    </div>
+  </div>
+
+  <div class="wrap" id="stack">
+    <div class="stack-card">
+      <div class="inner">
+        <div class="copy">
+          <h3>GST billing that files itself.</h3>
+          <p>Create a compliant invoice in seconds. GSTR-1, 3B and 9 assemble themselves from your sales as you work.</p>
+          <ul>
+            <li><i class="ph ph-check-circle"></i>B2B, B2CS and B2CL auto-classified from the customer's GSTIN</li>
+            <li><i class="ph ph-check-circle"></i>PDF, payment link and email sent in one click</li>
+            <li><i class="ph ph-check-circle"></i>Credit and debit notes tied back to the original invoice</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <img src="https://picsum.photos/seed/invoice-ledger-desk/900/640" alt="Ledger and billing desk">
+          <div class="veil"></div>
+          <div class="chip"><i class="ph ph-receipt"></i><div><b>INV-2047 sent</b><small>₹48,320 · paid via UPI</small></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="inner">
+        <div class="copy">
+          <h3>Inventory that never surprises you.</h3>
+          <p>Stock lives per godown, moves with approvals, and warns you before the shelf goes empty.</p>
+          <ul>
+            <li><i class="ph ph-check-circle"></i>Multi-godown stock with inter-branch transfers</li>
+            <li><i class="ph ph-check-circle"></i>Reorder alerts on the dashboard and in the nav badge</li>
+            <li><i class="ph ph-check-circle"></i>Purchase orders flow OEM to distributor to shelf</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <img src="https://picsum.photos/seed/warehouse-shelving-dark/900/640" alt="Warehouse shelving">
+          <div class="veil"></div>
+          <div class="chip"><i class="ph ph-package"></i><div><b>Transfer approved</b><small>120 units · Borivali to Thane</small></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack-card">
+      <div class="inner">
+        <div class="copy">
+          <h3>An assistant that knows your books.</h3>
+          <p>Ask in plain language. Sales this month, who owes you, what is running low. Orders arrive over WhatsApp.</p>
+          <ul>
+            <li><i class="ph ph-check-circle"></i>Plain-language answers backed by your live data</li>
+            <li><i class="ph ph-check-circle"></i>WhatsApp ordering bot for your regulars</li>
+            <li><i class="ph ph-check-circle"></i>Nightly summary of the day, ready at open</li>
+          </ul>
+        </div>
+        <div class="visual">
+          <img src="https://picsum.photos/seed/night-shop-counter/900/640" alt="Shop counter at night">
+          <div class="veil"></div>
+          <div class="chip"><i class="ph ph-sparkle"></i><div><b>"Who owes me money?"</b><small>7 customers · ₹1,12,400 pending</small></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DESIRE 1: Franchise HQ -->
+<section class="hq" id="hq">
+  <div class="wrap">
+    <div class="grid">
+      <div class="hq-side">
+        <span class="eyebrow">New</span>
+        <h2 class="display">Five showrooms. One login. Zero blind spots.</h2>
+        <p>Each showroom keeps its own clean account. You get the consolidated picture: revenue, outstanding and stock across the group, with one-click drill-down into any branch.</p>
+        <div class="pts">
+          <div class="pt"><i class="ph ph-buildings"></i><div><b>HQ overview</b><span>Group KPIs and trends, aggregated live</span></div></div>
+          <div class="pt"><i class="ph ph-arrows-left-right"></i><div><b>Instant switch</b><span>Jump into any showroom without re-logging</span></div></div>
+          <div class="pt"><i class="ph ph-shield-check"></i><div><b>Consent first</b><span>A branch joins only when its admin accepts</span></div></div>
+        </div>
+      </div>
+      <div class="hq-table" id="hqtable">
+        <div class="th"><span>Showroom</span><span>Revenue MTD</span><span>Outstanding</span><span>vs June</span></div>
+        <div class="tr"><span><b>Andheri West</b><small>flagship</small></span><span class="num">₹4,82,300</span><span class="num">₹64,200</span><span class="num pos">+18.2%</span></div>
+        <div class="tr"><span><b>Borivali</b><small>since 2022</small></span><span class="num">₹3,91,050</span><span class="num">₹88,900</span><span class="num pos">+9.4%</span></div>
+        <div class="tr"><span><b>Thane</b><small>since 2023</small></span><span class="num">₹3,12,480</span><span class="num">₹41,350</span><span class="num pos">+4.1%</span></div>
+        <div class="tr"><span><b>Pune FC Road</b><small>since 2024</small></span><span class="num">₹2,86,700</span><span class="num">₹1,02,760</span><span class="num neg">-2.8%</span></div>
+        <div class="tr"><span><b>Nashik</b><small>opened April</small></span><span class="num">₹1,67,900</span><span class="num">₹22,000</span><span class="num pos">+31.5%</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DESIRE 2: CRM -->
+<section class="crm" id="crm" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 class="display">A CRM where your counter already is.</h2>
+      <p>Leads, deals and follow-ups live next to the invoice they become. No copy-pasting into another tool.</p>
+    </div>
+    <div class="board" id="board">
+      <div class="col">
+        <div class="col-h"><b>New leads</b><span>4 · ₹2.1L</span></div>
+        <div class="deal"><b>Fleet quote, 6 vehicles</b><div class="who">Deshpande Logistics · walk-in</div><div class="val"><b>₹1,20,000</b><span class="due">follow up Tue</span></div></div>
+        <div class="deal"><b>Annual service contract</b><div class="who">Kavita Menon · referral</div><div class="val"><b>₹45,000</b><span class="due">call today</span></div></div>
+        <div class="deal"><b>Spare parts bulk order</b><div class="who">Om Sai Motors · WhatsApp</div><div class="val"><b>₹38,500</b><span class="due">quote sent</span></div></div>
+      </div>
+      <div class="col">
+        <div class="col-h"><b>Qualified</b><span>3 · ₹3.4L</span></div>
+        <div class="deal"><b>Showroom fit-out supply</b><div class="who">Rathi Interiors</div><div class="val"><b>₹2,10,000</b><span class="due hot">overdue 2d</span></div></div>
+        <div class="deal"><b>Two-wheeler accessories</b><div class="who">Priya Nair</div><div class="val"><b>₹72,300</b><span class="due">demo Fri</span></div></div>
+      </div>
+      <div class="col">
+        <div class="col-h"><b>Negotiation</b><span>2 · ₹5.6L</span></div>
+        <div class="deal"><b>Distributor onboarding</b><div class="who">Vighnesh Traders</div><div class="val"><b>₹4,80,000</b><span class="due">revised terms</span></div></div>
+        <div class="deal"><b>Corporate gifting run</b><div class="who">Arclight Studios</div><div class="val"><b>₹84,000</b><span class="due">PO awaited</span></div></div>
+      </div>
+      <div class="col">
+        <div class="col-h"><b>Won this month</b><span>5 · ₹7.9L</span></div>
+        <div class="deal"><b>Fleet servicing, Q3</b><div class="who">Deccan Couriers</div><div class="val"><b>₹3,60,000</b><span class="due">invoiced</span></div></div>
+        <div class="deal"><b>Workshop equipment</b><div class="who">Sagar Auto Works</div><div class="val"><b>₹2,25,000</b><span class="due">paid</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- social proof -->
+<section class="quote" style="padding-top:0">
+  <div class="wrap">
+    <blockquote>"I stopped calling five managers every night. <span class="g">The HQ view answers before I ask.</span>"</blockquote>
+    <div class="who">
+      <img src="https://picsum.photos/seed/indian-businessman-portrait/120/120" alt="Portrait of Rajesh Sharma">
+      <div><b>Rajesh Sharma</b><span>Owner, Sharma Auto Group · 5 showrooms, Mumbai</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ACTION -->
+<section class="final" id="pricing">
+  <div class="glow"></div>
+  <div class="wrap">
+    <h2 class="display">Run the whole business from one screen.</h2>
+    <p>Free for your first 50 invoices a month. No card required.</p>
+    <a class="btn btn-gold" href="#">Start free</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap row">
+    <span>InvoiceIQ · GST-compliant billing for Indian businesses</span>
+    <div class="links">
+      <a href="#features">Features</a><a href="#hq">Franchise HQ</a><a href="#crm">CRM</a><a href="#">Privacy</a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script>
+(function () {
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || typeof gsap === 'undefined') return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Hero: staggered entrance (hierarchy: headline first, then support, then proof)
+  gsap.from('.hero h1, .hero p, .hero .ctas', {
+    y: 28, opacity: 0, duration: 0.9, stagger: 0.12, ease: 'power3.out'
+  });
+  gsap.from('#preview', {
+    y: 80, opacity: 0, scale: 0.96, duration: 1.1, delay: 0.35, ease: 'power3.out'
+  });
+
+  // Stats: counters scrub in when strip enters (feedback: numbers feel earned)
+  document.querySelectorAll('.counter').forEach(function (el) {
+    var to = parseFloat(el.dataset.to);
+    var obj = { v: 0 };
+    gsap.to(obj, {
+      v: to, duration: 1.6, ease: 'power2.out',
+      scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+      onUpdate: function () { el.textContent = Math.round(obj.v).toLocaleString('en-IN'); }
+    });
+  });
+
+  // Sticky stack: each card pins, shrinks and dims as the next arrives (storytelling)
+  var cards = gsap.utils.toArray('.stack-card');
+  cards.forEach(function (card, i) {
+    if (i === cards.length - 1) return;
+    ScrollTrigger.create({
+      trigger: card, start: 'top top',
+      endTrigger: cards[cards.length - 1], end: 'top top',
+      pin: true, pinSpacing: false
+    });
+    gsap.to(card.querySelector('.inner'), {
+      scale: 0.93, opacity: 0.45, ease: 'none',
+      scrollTrigger: { trigger: cards[i + 1], start: 'top bottom', end: 'top top', scrub: true }
+    });
+  });
+
+  // HQ table rows: sequential reveal (hierarchy: one showroom at a time)
+  gsap.from('#hqtable .tr', {
+    x: 36, opacity: 0, duration: 0.55, stagger: 0.09, ease: 'power2.out',
+    scrollTrigger: { trigger: '#hqtable', start: 'top 75%', once: true }
+  });
+
+  // CRM columns: rise in sequence (storytelling: pipeline flows left to right)
+  gsap.from('#board .col', {
+    y: 44, opacity: 0, duration: 0.6, stagger: 0.1, ease: 'power3.out',
+    scrollTrigger: { trigger: '#board', start: 'top 78%', once: true }
+  });
+
+  // Section headers: gentle reveal
+  gsap.utils.toArray('.sec-head, .quote blockquote, .final h2').forEach(function (el) {
+    gsap.from(el, {
+      y: 30, opacity: 0, duration: 0.8, ease: 'power3.out',
+      scrollTrigger: { trigger: el, start: 'top 82%', once: true }
+    });
+  });
+})();
+</script>
+</body>
+</html>
