@@ -19,7 +19,13 @@ function periodToDateRange(fy: string, period: string): { from: string; to: stri
   return { from, to }
 }
 
-async function getAuthContext() {
+// Explicit union — prevents TS widening each branch's literal with optional
+// undefined props, which made `auth.error` type as `string | undefined`.
+type AuthContext =
+  | { error: string }
+  | { supabase: Awaited<ReturnType<typeof createClient>>; companyId: string }
+
+async function getAuthContext(): Promise<AuthContext> {
   const supabase = await createClient()
   const {
     data: { user },

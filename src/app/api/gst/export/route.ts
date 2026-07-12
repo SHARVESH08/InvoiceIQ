@@ -63,7 +63,8 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const buffer = buildGstnExcel(sections, meta)
-  return new Response(buffer, {
+  // Buffer isn't assignable to BodyInit under Node types; wrap as Uint8Array.
+  return new Response(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'Content-Disposition': `attachment; filename="${type}-${fy}-${period}.xlsx"`,
