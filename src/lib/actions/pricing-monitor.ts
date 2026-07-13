@@ -7,7 +7,14 @@ const PAGE = '/dashboard/settings/pricing-alerts'
 
 type Result = { success: true } | { error: string }
 
-async function ctx() {
+// Explicit union — without it TS widens each return's object literal with
+// optional-undefined props from the other branches, breaking `'error' in c`
+// narrowing at the call sites.
+type Ctx =
+  | { error: string }
+  | { supabase: Awaited<ReturnType<typeof createClient>>; companyId: string }
+
+async function ctx(): Promise<Ctx> {
   const supabase = await createClient()
   const {
     data: { user },

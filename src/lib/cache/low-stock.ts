@@ -1,5 +1,5 @@
 import 'server-only'
-import { unstable_cache, revalidateTag } from 'next/cache'
+import { unstable_cache, updateTag } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,5 +39,7 @@ export async function getCachedLowStockCount(companyId: string): Promise<number>
 // to bust the cached count (T-06-19: stale data mitigation).
 // ─────────────────────────────────────────────────────────────────────────────
 export function revalidateLowStockTag(companyId: string): void {
-  revalidateTag(lowStockTag(companyId))
+  // Next 16: updateTag = immediate expiration (old revalidateTag(tag)
+  // semantics). All callers are server actions, where updateTag is allowed.
+  updateTag(lowStockTag(companyId))
 }

@@ -46,7 +46,11 @@ function deriveInvoiceType(
 // ─────────────────────────────────────────────────────────────────────────────
 export async function createInvoice(
   input: InvoiceInput
-): Promise<{ error: string } | never> {
+): Promise<
+  | { error: string }
+  | { sent: true; invoiceId: string; emailFailed: boolean }
+  | never
+> {
   const parsed = InvoiceSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }

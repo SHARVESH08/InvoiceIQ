@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       company_id: string
       products: { id: string; name: string | null; category: string | null; selling_price: number | null } | null
     }
-    const monitored = ((monRows ?? []) as Joined[])
+    const monitored = ((monRows ?? []) as unknown as Joined[])
       .map((r) => ({
         company_id: r.company_id,
         product_id: r.products?.id ?? '',

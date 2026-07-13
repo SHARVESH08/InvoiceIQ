@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import dynamic from 'next/dynamic'
 import { RealtimeDashboard } from '@/components/realtime-dashboard'
+import { FollowUpsDueWidget } from '@/components/dashboard/followups-due-widget'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const OemDashboard = dynamic(() =>
@@ -102,6 +103,8 @@ export default async function DashboardPage() {
     <RealtimeDashboard companyId={company_id}>
       {/* Nightly Summary Card — AI-03; shown to all roles */}
       <NightlySummaryCard summary={nightlySummary} />
+      {/* CRM follow-ups due today/overdue — shown to all roles, absent when empty */}
+      <FollowUpsDueWidget />
       {company_type === 'OEM' && (
         <OemDashboard
           isAdmin={isAdmin}

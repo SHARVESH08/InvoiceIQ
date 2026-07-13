@@ -24,7 +24,9 @@ export async function resolveIntent(
       if (!data) {
         return `No product matching "${intent.product}" found.`
       }
-      const row = data as { quantity: number; products: { name: string } }
+      // `products` is a to-one FK join — object at runtime, but the select-string
+      // parser infers an array without generated DB types, so cast via unknown.
+      const row = data as unknown as { quantity: number; products: { name: string } }
       return `You have ${row.quantity} units of ${row.products.name} in stock.`
     }
 
@@ -126,7 +128,7 @@ export async function resolveIntent(
       }
       // Aggregate by product name
       const totals: Record<string, number> = {}
-      for (const row of data as {
+      for (const row of data as unknown as {
         quantity: number
         products: { name: string }
         invoices: { company_id: string; created_at: string }
@@ -168,7 +170,7 @@ export async function resolveIntent(
       if (!data || data.length === 0) {
         return `No outstanding balance found for "${intent.customer}".`
       }
-      const rows = data as { total_amount: number; customers: { name: string } }[]
+      const rows = data as unknown as { total_amount: number; customers: { name: string } }[]
       const customerName = rows[0].customers.name
       const balance = rows.reduce((sum, row) => sum + Number(row.total_amount ?? 0), 0)
       const count = rows.length
@@ -184,7 +186,7 @@ export async function resolveIntent(
       if (!data || data.length === 0) {
         return 'All products are above reorder level — stock is healthy!'
       }
-      const rows = data as {
+      const rows = data as unknown as {
         quantity: number
         products: { name: string; reorder_level: number }
       }[]

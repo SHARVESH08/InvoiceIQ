@@ -12,6 +12,8 @@ import {
   Sparkles,
   Settings,
   BellRing,
+  Building2,
+  SquareKanban,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -29,6 +31,8 @@ export interface NavContext {
   companyType?: string | null
   lowStockCount?: number
   poPendingCount?: number
+  /** True when the user owns a franchise group — surfaces the HQ nav entry. */
+  isFranchiseOwner?: boolean
 }
 
 export interface NavGroups {
@@ -59,9 +63,13 @@ export function getCustomerNavItems(): NavGroups {
  * both the desktop sidebar and the mobile drawer.
  */
 export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem[] } {
-  const { companyType = null, lowStockCount = 0, poPendingCount = 0 } = ctx
+  const { companyType = null, lowStockCount = 0, poPendingCount = 0, isFranchiseOwner = false } = ctx
 
   const main: NavItem[] = [
+    // HQ leads the nav for franchise owners: the group view is their home base.
+    ...(isFranchiseOwner
+      ? [{ href: '/hq', label: 'HQ', icon: Building2 } satisfies NavItem]
+      : []),
     { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid, match: 'exact' },
     { href: '/invoices', label: 'Invoices', icon: FileText },
     {
@@ -72,6 +80,7 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
     },
     { href: '/products', label: 'Products', icon: Tags },
     { href: '/customers', label: 'Customers', icon: Users },
+    { href: '/crm', label: 'CRM', icon: SquareKanban },
     { href: '/suppliers', label: 'Suppliers', icon: Truck },
   ]
 
@@ -95,6 +104,8 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
   main.push({ href: '/dashboard/settings/pricing-alerts', label: 'Pricing Alerts', icon: BellRing })
 
   const footer: NavItem[] = [
+    // Where a showroom admin finds (and accepts) incoming franchise invites.
+    { href: '/settings/franchise', label: 'Franchise', icon: Building2 },
     { href: '/settings/godowns', label: 'Settings', icon: Settings },
   ]
 

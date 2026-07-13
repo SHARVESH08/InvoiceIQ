@@ -45,31 +45,42 @@ function buildMonthlyData(invoices: ExportInvoiceRow[]): MonthlyBar[] {
 }
 
 export function PnlTab({ from, to }: PnlTabProps) {
-  const [pnlData, setPnlData] = useState<PnlResult | null>(null)
-  const [chartData, setChartData] = useState<MonthlyBar[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  // Result keyed by the request params; `loading` is derived instead of set
+  // synchronously in the effect (react-hooks/set-state-in-effect). The key
+  // check also drops stale responses when from/to change mid-flight.
+  const key = `${from}|${to}`
+  const [result, setResult] = useState<{
+    key: string
+    pnl?: PnlResult
+    chart?: MonthlyBar[]
+    error?: string
+  } | null>(null)
 
   useEffect(() => {
     if (!from || !to) return
-    setLoading(true)
-    setError(null)
-
+    let stale = false
     Promise.all([
       getPnlSummary(from, to),
       listInvoicesForExport(from, to),
     ]).then(([pnl, exportResult]) => {
-      if ('error' in pnl) {
-        setError(pnl.error)
-      } else {
-        setPnlData(pnl)
-      }
-      if (!('error' in exportResult)) {
-        setChartData(buildMonthlyData(exportResult.invoices))
-      }
-      setLoading(false)
+      if (stale) return
+      setResult({
+        key,
+        pnl: 'error' in pnl ? undefined : pnl,
+        error: 'error' in pnl ? pnl.error : undefined,
+        chart: 'error' in exportResult ? [] : buildMonthlyData(exportResult.invoices),
+      })
     })
-  }, [from, to])
+    return () => {
+      stale = true
+    }
+  }, [from, to, key])
+
+  const current = result?.key === key ? result : null
+  const loading = Boolean(from && to) && !current
+  const error = current?.error ?? null
+  const pnlData = current?.pnl ?? null
+  const chartData = current?.chart ?? []
 
   if (loading) {
     return <p className="text-sm text-muted-foreground py-6">Loading...</p>
