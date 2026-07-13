@@ -14,6 +14,7 @@ import {
   BellRing,
   Building2,
   SquareKanban,
+  PhoneCall,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -106,6 +107,7 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
   const footer: NavItem[] = [
     // Where a showroom admin finds (and accepts) incoming franchise invites.
     { href: '/settings/franchise', label: 'Franchise', icon: Building2 },
+    { href: '/settings/telephony', label: 'Telephony', icon: PhoneCall },
     { href: '/settings/godowns', label: 'Settings', icon: Settings },
   ]
 
