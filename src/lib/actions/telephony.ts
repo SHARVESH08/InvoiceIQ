@@ -65,8 +65,14 @@ export async function getTelephonyStatus(): Promise<TelephonyStatus> {
     }
   }
 
+  // Existence check via admin client: telephony_settings RLS is admin-only,
+  // but salespeople also need to know whether provider calling is available
+  // (it decides Call-button mode). Only non-secret fields are selected.
+  const { createAdminClient } = await import('@/lib/supabase/admin')
+  const admin = createAdminClient()
+
   const [settingsRes, agentRes] = await Promise.all([
-    c.supabase
+    admin
       .from('telephony_settings')
       .select('account_sid, virtual_number, record_calls')
       .eq('company_id', c.companyId)

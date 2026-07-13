@@ -19,9 +19,10 @@ interface CrmTabsProps {
     deals_lost: number
     won_value: number
   } | null
+  telephonyEnabled: boolean
 }
 
-export function CrmTabs({ deals, leads, tasks, segments, funnel }: CrmTabsProps) {
+export function CrmTabs({ deals, leads, tasks, segments, funnel, telephonyEnabled }: CrmTabsProps) {
   const openTaskCount = tasks.length
 
   return (
@@ -39,7 +40,7 @@ export function CrmTabs({ deals, leads, tasks, segments, funnel }: CrmTabsProps)
         <PipelineBoard deals={deals} leads={leads} />
       </TabsContent>
       <TabsContent value="leads" className="mt-4">
-        <LeadsTable leads={leads} />
+        <LeadsTable leads={leads} telephonyEnabled={telephonyEnabled} />
       </TabsContent>
       <TabsContent value="followups" className="mt-4">
         <FollowUpsList tasks={tasks} />

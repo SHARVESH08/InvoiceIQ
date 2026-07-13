@@ -18,9 +18,10 @@ export default async function TelephonySettingsPage() {
       <div>
         <h1 className="font-display text-2xl font-semibold">Telephony</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Click-to-call and call recording via Exotel. Calls ring your phone
-          first, then connect the customer; recordings land on the customer
-          timeline automatically.
+          Free mode is always on: Call buttons open your phone&apos;s dialer at
+          no cost, with one-tap call logging. Connect an Exotel account below
+          to upgrade to bridged calls with automatic logging and recordings on
+          the customer timeline.
         </p>
       </div>
 
