@@ -13,6 +13,7 @@ import {
   Settings,
   BellRing,
   Building2,
+  SquareKanban,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -79,6 +80,7 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
     },
     { href: '/products', label: 'Products', icon: Tags },
     { href: '/customers', label: 'Customers', icon: Users },
+    { href: '/crm', label: 'CRM', icon: SquareKanban },
     { href: '/suppliers', label: 'Suppliers', icon: Truck },
   ]
 

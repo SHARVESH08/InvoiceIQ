@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CustomerEditForm } from './_customer-edit-form'
+import { CustomerTimeline } from './_customer-timeline'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -20,5 +21,10 @@ export default async function EditCustomerPage(props: Props) {
     notFound()
   }
 
-  return <CustomerEditForm customer={customer} />
+  return (
+    <>
+      <CustomerEditForm customer={customer} />
+      <CustomerTimeline customerId={params.id} />
+    </>
+  )
 }
