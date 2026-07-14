@@ -10,6 +10,9 @@
 --   customer timeline.
 -- =============================================================================
 
+-- gen_random_bytes lives in pgcrypto (extensions schema on Supabase).
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
 CREATE TABLE public.telephony_settings (
   company_id     uuid        PRIMARY KEY REFERENCES public.companies(id) ON DELETE CASCADE,
   provider       text        NOT NULL DEFAULT 'exotel' CHECK (provider IN ('exotel')),
@@ -19,7 +22,7 @@ CREATE TABLE public.telephony_settings (
   virtual_number text        NOT NULL, -- the Exophone used as CallerId
   -- Shared secret embedded in the StatusCallback URL; Exotel v1 does not sign
   -- webhooks, so this is the webhook's auth.
-  webhook_token  text        NOT NULL DEFAULT encode(gen_random_bytes(24), 'hex'),
+  webhook_token  text        NOT NULL DEFAULT encode(extensions.gen_random_bytes(24), 'hex'),
   record_calls   boolean     NOT NULL DEFAULT true,
   created_at     timestamptz NOT NULL DEFAULT now(),
   updated_at     timestamptz NOT NULL DEFAULT now()
