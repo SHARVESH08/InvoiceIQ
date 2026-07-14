@@ -5,6 +5,7 @@ import {
   getCrmSegments,
   getCrmFunnel,
 } from '@/lib/actions/crm'
+import { getTelephonyStatus } from '@/lib/actions/telephony'
 import { CrmTabs } from './_components/crm-tabs'
 
 export const dynamic = 'force-dynamic'
@@ -15,12 +16,13 @@ export const dynamic = 'force-dynamic'
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default async function CrmPage() {
-  const [deals, leads, tasks, segments, funnel] = await Promise.all([
+  const [deals, leads, tasks, segments, funnel, telephony] = await Promise.all([
     listDeals(),
     listLeads(),
     listOpenTasks(),
     getCrmSegments(),
     getCrmFunnel(),
+    getTelephonyStatus(),
   ])
 
   return (
@@ -38,6 +40,7 @@ export default async function CrmPage() {
         tasks={tasks}
         segments={segments}
         funnel={funnel}
+        telephonyEnabled={telephony.configured}
       />
     </div>
   )

@@ -39,6 +39,7 @@ import {
   type LeadStatus,
   type LeadSource,
 } from '@/lib/actions/crm'
+import { CallButton } from '@/components/telephony/call-button'
 
 const SOURCE_LABELS: Record<LeadSource, string> = {
   walk_in: 'Walk-in',
@@ -61,9 +62,11 @@ const MANUAL_STATUSES: LeadStatus[] = ['new', 'contacted', 'qualified', 'lost']
 
 interface LeadsTableProps {
   leads: CrmLead[]
+  /** Provider calling configured; false = free tel: fallback on Call buttons. */
+  telephonyEnabled?: boolean
 }
 
-export function LeadsTable({ leads }: LeadsTableProps) {
+export function LeadsTable({ leads, telephonyEnabled = false }: LeadsTableProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -148,22 +151,30 @@ export function LeadsTable({ leads }: LeadsTableProps) {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      {!closed && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 text-xs"
-                          disabled={isPending && busyId === lead.id}
-                          onClick={() => convert(lead)}
-                        >
-                          {isPending && busyId === lead.id ? (
-                            <Loader2 className="mr-1 size-3 animate-spin" />
-                          ) : (
-                            <UserCheck className="mr-1 size-3" />
-                          )}
-                          Convert
-                        </Button>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        <CallButton
+                          toNumber={lead.phone}
+                          leadId={lead.id}
+                          telephonyEnabled={telephonyEnabled}
+                          compact
+                        />
+                        {!closed && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs"
+                            disabled={isPending && busyId === lead.id}
+                            onClick={() => convert(lead)}
+                          >
+                            {isPending && busyId === lead.id ? (
+                              <Loader2 className="mr-1 size-3 animate-spin" />
+                            ) : (
+                              <UserCheck className="mr-1 size-3" />
+                            )}
+                            Convert
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 )

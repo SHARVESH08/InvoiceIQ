@@ -19,6 +19,8 @@ interface TimelineEvent {
   kind: 'invoice' | 'payment' | InteractionType
   text: string
   amount?: number
+  /** crm_calls id when this event has a playable recording. */
+  recordingCallId?: string
 }
 
 const INTERACTION_ICONS: Record<InteractionType, typeof Phone> = {
@@ -36,7 +38,7 @@ const INTERACTION_ICONS: Record<InteractionType, typeof Phone> = {
 export async function CustomerTimeline({ customerId }: { customerId: string }) {
   const supabase = await createClient()
 
-  const [invoicesRes, paymentsRes, interactionsRes] = await Promise.all([
+  const [invoicesRes, paymentsRes, interactionsRes, callsRes] = await Promise.all([
     supabase
       .from('invoices')
       .select('id, invoice_number, total_amount, created_at, status')
@@ -57,7 +59,20 @@ export async function CustomerTimeline({ customerId }: { customerId: string }) {
       .eq('customer_id', customerId)
       .order('occurred_at', { ascending: false })
       .limit(20),
+    // Calls with recordings — matched to their interaction row for playback.
+    supabase
+      .from('crm_calls')
+      .select('id, interaction_id')
+      .eq('customer_id', customerId)
+      .not('recording_url', 'is', null)
+      .limit(40),
   ])
+
+  const recordingByInteraction = new Map(
+    (callsRes.data ?? [])
+      .filter((c) => c.interaction_id)
+      .map((c) => [c.interaction_id as string, c.id as string])
+  )
 
   const events: TimelineEvent[] = [
     ...(invoicesRes.data ?? []).map((inv) => ({
@@ -82,6 +97,7 @@ export async function CustomerTimeline({ customerId }: { customerId: string }) {
       at: i.occurred_at as string,
       kind: i.type as InteractionType,
       text: i.content as string,
+      recordingCallId: recordingByInteraction.get(i.id as string),
     })),
   ]
     .sort((a, b) => (a.at < b.at ? 1 : -1))
@@ -123,6 +139,14 @@ export async function CustomerTimeline({ customerId }: { customerId: string }) {
                     year: 'numeric',
                   })}
                 </p>
+                {event.recordingCallId && (
+                  <audio
+                    controls
+                    preload="none"
+                    src={`/api/telephony/recording/${event.recordingCallId}`}
+                    className="mt-2 h-9 w-full max-w-md"
+                  />
+                )}
               </li>
             )
           })}

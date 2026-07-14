@@ -28,9 +28,9 @@ describe('getNavItems role gating', () => {
     expect(po.badge).toBe(3)
   })
 
-  it('returns Franchise + Settings as the footer items', () => {
+  it('returns Franchise + Telephony + Settings as the footer items', () => {
     const { footer } = getNavItems({})
-    expect(footer.map((i) => i.label)).toEqual(['Franchise', 'Settings'])
+    expect(footer.map((i) => i.label)).toEqual(['Franchise', 'Telephony', 'Settings'])
   })
 
   it('hides HQ by default and leads with it for franchise owners', () => {
