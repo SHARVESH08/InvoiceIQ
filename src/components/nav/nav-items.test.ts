@@ -28,11 +28,30 @@ describe('getNavItems role gating', () => {
     expect(po.badge).toBe(3)
   })
 
-  it('collapses the footer to a single Settings entry', () => {
+  it('puts Notifications and Settings in the footer', () => {
     // Franchise and Telephony are tabs inside /settings now, not footer items.
     const { footer } = getNavItems({})
-    expect(footer.map((i) => i.label)).toEqual(['Settings'])
-    expect(footer[0].href).toBe('/settings')
+    expect(footer.map((i) => i.label)).toEqual(['Notifications', 'Settings'])
+    expect(footer[1].href).toBe('/settings')
+  })
+
+  it('badges Notifications only when there are unread ones', () => {
+    const none = getNavItems({}).footer.find((i) => i.label === 'Notifications')!
+    expect(none.badge).toBeUndefined()
+
+    const some = getNavItems({ unreadNotifications: 4 }).footer.find(
+      (i) => i.label === 'Notifications'
+    )!
+    expect(some.badge).toBe(4)
+  })
+
+  it('keeps the notification inbox visible to every role', () => {
+    // An inbox belongs to the person, not the company role — even a CA, who
+    // loses most of the nav, must still be able to read their own messages.
+    for (const role of ['admin', 'manager', 'billing', 'accountant', 'salesperson', 'ca'] as const) {
+      const labels = getNavItems({ role }).footer.map((i) => i.label)
+      expect(labels, `role ${role}`).toContain('Notifications')
+    }
   })
 
   it('hides HQ by default and leads with it for franchise owners', () => {
@@ -68,9 +87,10 @@ describe('getNavItems role filtering', () => {
 
   it('hides everything permissioned for an unknown/absent role', () => {
     const { main, footer } = getNavItems({ role: null })
-    // Dashboard carries no permission, so it survives; the rest should not.
+    // Dashboard and Notifications carry no permission, so they survive; every
+    // permissioned entry should not.
     expect(main.map((i) => i.label)).toEqual(['Dashboard'])
-    expect(footer).toEqual([])
+    expect(footer.map((i) => i.label)).toEqual(['Notifications'])
   })
 
   it('hides stock and purchasing from an external CA', () => {
@@ -92,12 +112,16 @@ describe('getNavItems role filtering', () => {
     expect(labels).toContain('CRM')
     expect(labels).toContain('Invoices')
     expect(labels).not.toContain('Reports')
-    expect(footer).toEqual([])
+    // Settings is gone; the inbox is not role-gated.
+    expect(footer.map((i) => i.label)).toEqual(['Notifications'])
   })
 
   it('keeps Settings visible for roles that can read it', () => {
     for (const role of ['admin', 'manager', 'billing', 'accountant'] as const) {
-      expect(getNavItems({ role }).footer.map((i) => i.label)).toEqual(['Settings'])
+      expect(getNavItems({ role }).footer.map((i) => i.label)).toEqual([
+        'Notifications',
+        'Settings',
+      ])
     }
   })
 })

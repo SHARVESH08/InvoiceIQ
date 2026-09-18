@@ -9,6 +9,7 @@ import { PageTransition } from '@/components/motion/page-transition'
 import { AssistantBubble } from '@/components/chat/assistant-bubble'
 import { getCurrentRole } from '@/lib/auth/require-permission'
 import type { Role } from '@/lib/auth/permissions'
+import { getUnreadNotificationCount } from '@/lib/actions/notifications'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BusinessLayout
@@ -45,10 +46,18 @@ export default async function BusinessLayout({
   // null (not undefined) on failure: undefined tells getNavItems "don't filter",
   // which would hand a broken lookup the full nav. null hides permissioned items.
   let role: Role | null = null
+  let unreadNotifications = 0
   try {
     role = await getCurrentRole()
   } catch {
     role = null
+  }
+  try {
+    // Server-rendered per navigation, like the low-stock badge. A failure here
+    // must never break the shell — the bell just shows no count.
+    unreadNotifications = await getUnreadNotificationCount()
+  } catch {
+    unreadNotifications = 0
   }
   try {
     // Franchise context: HQ nav gate + company switcher. Failure never breaks the shell.
@@ -130,6 +139,7 @@ export default async function BusinessLayout({
         memberships={memberships}
         defaultCollapsed={defaultCollapsed}
         role={role}
+        unreadNotifications={unreadNotifications}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <MobileHeader
@@ -138,6 +148,7 @@ export default async function BusinessLayout({
           poPendingCount={poPendingCount}
           isFranchiseOwner={isFranchiseOwner}
           role={role}
+          unreadNotifications={unreadNotifications}
         />
         <main className="flex-1 p-6">
           {!onboardingCompleted && <ResumeBanner step={onboardingStep} />}

@@ -16,6 +16,7 @@ import {
   SquareKanban,
   PhoneCall,
   Warehouse,
+  Bell,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -47,6 +48,8 @@ export interface NavContext {
    * tests keep their previous behaviour.
    */
   role?: Role | null
+  /** Unread notifications, badged on the Notifications entry. */
+  unreadNotifications?: number
 }
 
 export interface NavGroups {
@@ -83,6 +86,7 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
     poPendingCount = 0,
     isFranchiseOwner = false,
     role,
+    unreadNotifications = 0,
   } = ctx
 
   const main: NavItem[] = [
@@ -144,6 +148,14 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
   })
 
   const footer: NavItem[] = [
+    // No permission: notifications belong to the person, not the role. Every
+    // member of a company has an inbox.
+    {
+      href: '/notifications',
+      label: 'Notifications',
+      icon: Bell,
+      badge: unreadNotifications > 0 ? unreadNotifications : undefined,
+    },
     // Franchise (where a showroom admin accepts invites) and Telephony are tabs
     // inside Settings now, so one entry covers all of them.
     { href: '/settings', label: 'Settings', icon: Settings, permission: 'settings:read' },
