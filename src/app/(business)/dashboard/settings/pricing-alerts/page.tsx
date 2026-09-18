@@ -11,10 +11,10 @@ export default async function PricingAlertsPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect('/auth/business/login')
 
   const { data: companyId } = await supabase.rpc('get_company_id')
-  if (!companyId) redirect('/login')
+  if (!companyId) redirect('/auth/business/login')
 
   const { data: productRows } = await supabase
     .from('products')

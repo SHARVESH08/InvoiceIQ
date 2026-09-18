@@ -36,6 +36,9 @@ export async function middleware(request: NextRequest) {
   // URL segment, so these all resolve at root (e.g. /invoices), NOT under /dashboard.
   // They must ALL be guarded — not just /dashboard (AUTH-08; fixes the matcher gap
   // found in the v1.0 integration audit, where /invoices /products etc. ran no guard).
+  // Keep this list in sync with the directories under src/app/(business)/ and
+  // with `config.matcher` below. A route added to the group but missed here
+  // runs no auth guard at all.
   const BUSINESS_PREFIXES = [
     '/dashboard',
     '/invoices',
@@ -44,6 +47,10 @@ export async function middleware(request: NextRequest) {
     '/suppliers',
     '/inventory',
     '/settings',
+    '/crm',
+    '/hq',
+    '/godowns',
+    '/notifications',
   ]
   const isBusinessPath = BUSINESS_PREFIXES.some((p) => pathname.startsWith(p))
 
@@ -121,6 +128,10 @@ export const config = {
     '/suppliers(.*)',
     '/inventory(.*)',
     '/settings(.*)',
+    '/crm(.*)',
+    '/hq(.*)',
+    '/godowns(.*)',
+    '/notifications(.*)',
     '/onboarding(.*)',
     '/my(.*)',
   ],

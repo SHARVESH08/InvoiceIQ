@@ -26,7 +26,7 @@ export default async function GstPage() {
   const supabase = await createClient()
 
   const { data: ctx } = await supabase.rpc('get_company_context')
-  if (!ctx) redirect('/login')
+  if (!ctx) redirect('/auth/business/login')
 
   const { company_id } = ctx as CompanyContext
 

@@ -13,10 +13,10 @@ export default async function ChatPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect('/auth/business/login')
 
   const { data: companyId } = await supabase.rpc('get_company_id')
-  if (!companyId) redirect('/login')
+  if (!companyId) redirect('/auth/business/login')
 
   return (
     <div className="space-y-4">

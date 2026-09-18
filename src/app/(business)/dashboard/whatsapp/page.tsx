@@ -33,7 +33,7 @@ export default async function WhatsAppPage() {
   // ─── Stage 1: company context ─────────────────────────────────────────────
   // get_company_context() is SECURITY DEFINER — returns data scoped to auth.uid()
   const { data: ctx } = await supabase.rpc('get_company_context')
-  if (!ctx) redirect('/login')
+  if (!ctx) redirect('/auth/business/login')
 
   const { company_id, company_type } = ctx as CompanyContext
 

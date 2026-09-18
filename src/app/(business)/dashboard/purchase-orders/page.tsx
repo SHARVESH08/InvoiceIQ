@@ -77,7 +77,7 @@ export default async function PurchaseOrdersPage() {
   const supabase = await createClient()
 
   const { data: ctx } = await supabase.rpc('get_company_context')
-  if (!ctx) redirect('/login')
+  if (!ctx) redirect('/auth/business/login')
 
   const companyCtx = ctx as CompanyContext
   const companyType = companyCtx.company_type

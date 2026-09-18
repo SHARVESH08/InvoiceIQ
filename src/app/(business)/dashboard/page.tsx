@@ -33,7 +33,7 @@ export default async function DashboardPage() {
   // get_company_context() is SECURITY DEFINER — returns data scoped to auth.uid()
   // T-07-07: company_type cannot be spoofed — comes from auth-scoped RPC only
   const { data: ctx } = await supabase.rpc('get_company_context')
-  if (!ctx) redirect('/login')
+  if (!ctx) redirect('/auth/business/login')
 
   const { company_id, company_type, user_role } = ctx as CompanyContext
 

@@ -77,6 +77,8 @@ export async function requirePermission(
 export async function requirePagePermission(permission: Permission): Promise<void> {
   const role = await getCurrentRole()
 
-  if (role === null) redirect('/login')
+  // '/auth/business/login', not '/login' — the latter is not a route in this
+  // app and redirecting there produces a 404 for logged-out visitors.
+  if (role === null) redirect('/auth/business/login')
   if (!can(role, permission)) redirect('/dashboard')
 }
