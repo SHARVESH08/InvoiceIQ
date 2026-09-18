@@ -4,10 +4,14 @@ import { z } from 'zod'
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requirePermission } from '@/lib/auth/require-permission'
+import { INVITABLE_ROLES } from '@/lib/auth/permissions'
 
 const InviteSchema = z.object({
   email: z.string().email('Enter a valid email address'),
-  role: z.enum(['accountant', 'salesperson', 'ca']),
+  // Shares one list with the invite form, so the dropdown and the server can't
+  // drift. 'admin' is excluded by construction — see INVITABLE_ROLES.
+  role: z.enum(INVITABLE_ROLES),
 })
 
 export type InviteSubUserInput = z.infer<typeof InviteSchema>
@@ -15,6 +19,9 @@ export type InviteSubUserInput = z.infer<typeof InviteSchema>
 export async function inviteSubUser(
   input: InviteSubUserInput
 ): Promise<{ error?: string }> {
+  const denied = await requirePermission('team:manage')
+  if (denied) return denied
+
   const parsed = InviteSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }

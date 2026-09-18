@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { TallyRowInput } from '@/lib/tally-import'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -203,6 +204,9 @@ export async function listInvoicesForExport(
 export async function importTallyInvoices(
   rows: TallyRowInput[]
 ): Promise<{ error: string } | { imported: number; skipped: number }> {
+  const denied = await requirePermission('invoices:write')
+  if (denied) return denied
+
   const auth = await getAuthContext()
   if ('error' in auth) return { error: auth.error }
   const { supabase, companyId } = auth

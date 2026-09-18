@@ -5,6 +5,7 @@ import { z } from 'zod'
 
 import { createClient } from '@/lib/supabase/server'
 import { connectCall, normalizePhone } from '@/lib/telephony/exotel'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 type Result = { success: true } | { error: string }
 
@@ -99,6 +100,9 @@ export async function getTelephonyStatus(): Promise<TelephonyStatus> {
 
 /** Admin-only via RLS on telephony_settings. */
 export async function saveTelephonySettings(input: TelephonySettingsInput): Promise<Result> {
+  const denied = await requirePermission('settings:write')
+  if (denied) return denied
+
   const parsed = SettingsSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
 
@@ -131,6 +135,9 @@ const PhoneSchema = z
   .regex(/^\+?[0-9\s\-()]{8,16}$/, 'Enter a valid phone number')
 
 export async function saveAgentPhone(phone: string): Promise<Result> {
+  const denied = await requirePermission('settings:write')
+  if (denied) return denied
+
   const parsed = PhoneSchema.safeParse(phone)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid phone' }
 
@@ -171,6 +178,9 @@ export type InitiateCallInput = z.infer<typeof InitiateSchema>
 export async function initiateCall(
   input: InitiateCallInput
 ): Promise<{ success: true; call_id: string } | { error: string }> {
+  const denied = await requirePermission('crm:write')
+  if (denied) return denied
+
   const parsed = InitiateSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
 

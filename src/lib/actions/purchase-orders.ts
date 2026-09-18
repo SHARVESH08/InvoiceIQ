@@ -7,6 +7,7 @@ import {
   CreatePOSchema,
   type CreatePOInput,
 } from '@/lib/schemas/purchase-order'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -118,6 +119,9 @@ export async function createPurchaseOrder(
   input: CreatePOInput
 ): Promise<{ error: string } | { poId: string }> {
   // 1. Zod validation
+  const denied = await requirePermission('purchase_orders:write')
+  if (denied) return denied
+
   const parsed = CreatePOSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -317,6 +321,9 @@ export async function getPurchaseOrder(
 export async function confirmPO(
   poId: string
 ): Promise<{ error: string } | { success: true }> {
+  const denied = await requirePermission('purchase_orders:write')
+  if (denied) return denied
+
   const ctx = await getAuthContext()
   if ('error' in ctx) return ctx
   const { supabase, companyId } = ctx
@@ -343,6 +350,9 @@ export async function rejectPO(
   poId: string,
   reason?: string
 ): Promise<{ error: string } | { success: true }> {
+  const denied = await requirePermission('purchase_orders:write')
+  if (denied) return denied
+
   const ctx = await getAuthContext()
   if ('error' in ctx) return ctx
   const { supabase, companyId } = ctx
@@ -374,6 +384,9 @@ export async function rejectPO(
 export async function dispatchPO(
   poId: string
 ): Promise<{ error: string } | { invoiceId: string; invoiceNumber: string }> {
+  const denied = await requirePermission('purchase_orders:write')
+  if (denied) return denied
+
   const ctx = await getAuthContext()
   if ('error' in ctx) return ctx
   const { supabase, companyId } = ctx
@@ -416,6 +429,9 @@ export async function receivePO(
   poId: string,
   godownId: string
 ): Promise<{ error: string } | { invoiceId: string; invoiceNumber: string }> {
+  const denied = await requirePermission('purchase_orders:write')
+  if (denied) return denied
+
   const ctx = await getAuthContext()
   if ('error' in ctx) return ctx
   const { supabase, companyId } = ctx

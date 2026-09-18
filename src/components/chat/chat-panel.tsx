@@ -42,11 +42,26 @@ const SUGGESTIONS = [
   },
 ]
 
+interface ChatPanelProps {
+  /** Hidden in the floating bubble, which supplies its own title bar. */
+  showHeader?: boolean
+  /** Tailwind max-height for the scroll region. The bubble needs a fixed one. */
+  scrollAreaClassName?: string
+  className?: string
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ChatPanel — client component
 // Messages are session-only React state (not persisted to DB).
+// Rendered in two shells: the full /dashboard/chat page and the floating
+// AssistantBubble. The props exist only to let the bubble drop the header and
+// pin the scroll height — the conversation itself is identical in both.
 // ─────────────────────────────────────────────────────────────────────────────
-export function ChatPanel() {
+export function ChatPanel({
+  showHeader = true,
+  scrollAreaClassName = 'max-h-[60vh]',
+  className,
+}: ChatPanelProps = {}) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -86,13 +101,15 @@ export function ChatPanel() {
   const isEmpty = messages.length === 0 && !isLoading
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold">Chat with your business data</CardTitle>
-      </CardHeader>
+    <Card className={cn('flex flex-col', className)}>
+      {showHeader && (
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold">Chat with your business data</CardTitle>
+        </CardHeader>
+      )}
 
       <CardContent className="flex-1 overflow-hidden p-4">
-        <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-1">
+        <div className={cn('overflow-y-auto space-y-3 pr-1', scrollAreaClassName)}>
 
           {/* ── Empty state: suggestion grid ─────────────────────────────── */}
           {isEmpty && (

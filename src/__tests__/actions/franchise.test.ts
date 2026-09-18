@@ -54,7 +54,32 @@ const VALID_GSTIN = '27AAPFU0939F1ZV'
 
 beforeEach(() => {
   vi.clearAllMocks()
+
+  // Franchise mutations sit behind requirePermission('franchise:manage'), which
+  // resolves the caller through getUser() + the get_company_role RPC. Default
+  // every test to a signed-in admin; individual tests override mockRpc after
+  // this to assert their own RPC behaviour.
+  mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null })
+  mockRpc.mockImplementation((fn: string) =>
+    fn === 'get_company_role'
+      ? Promise.resolve({ data: 'admin', error: null })
+      : Promise.resolve({ data: null, error: null })
+  )
 })
+
+/**
+ * Sets what the RPC under test resolves to, while keeping the role guard
+ * answering 'admin'. A plain mockRpc.mockResolvedValue() would also answer
+ * get_company_role with that payload, which requirePermission reads as "not a
+ * valid role" and denies.
+ */
+function rpcResolves(result: { data: unknown; error: unknown }) {
+  mockRpc.mockImplementation((fn: string) =>
+    fn === 'get_company_role'
+      ? Promise.resolve({ data: 'admin', error: null })
+      : Promise.resolve(result)
+  )
+}
 
 // ─── createFranchiseGroup ─────────────────────────────────────────────────────
 
@@ -62,11 +87,24 @@ describe('createFranchiseGroup', () => {
   it('rejects names shorter than 2 characters without calling the RPC', async () => {
     const result = await createFranchiseGroup(' a ')
     expect(result).toEqual({ error: 'Name too short' })
-    expect(mockRpc).not.toHaveBeenCalled()
+    // The role guard runs first, so mockRpc has one call; what must not happen
+    // is the mutation itself.
+    expect(mockRpc).not.toHaveBeenCalledWith('create_franchise_group', expect.anything())
+  })
+
+  it('refuses a caller without franchise:manage', async () => {
+    mockRpc.mockImplementation((fn: string) =>
+      fn === 'get_company_role'
+        ? Promise.resolve({ data: 'salesperson', error: null })
+        : Promise.resolve({ data: 'group-1', error: null })
+    )
+    const result = await createFranchiseGroup('Sharma Auto Group')
+    expect(result).toHaveProperty('error')
+    expect(mockRpc).not.toHaveBeenCalledWith('create_franchise_group', expect.anything())
   })
 
   it('calls create_franchise_group with the trimmed name', async () => {
-    mockRpc.mockResolvedValue({ data: 'group-1', error: null })
+    rpcResolves({ data: 'group-1', error: null })
     const result = await createFranchiseGroup('  Sharma Auto Group  ')
     expect(result).toEqual({ success: true })
     expect(mockRpc).toHaveBeenCalledWith('create_franchise_group', {
@@ -75,7 +113,7 @@ describe('createFranchiseGroup', () => {
   })
 
   it('surfaces RPC errors', async () => {
-    mockRpc.mockResolvedValue({ data: null, error: { message: 'boom' } })
+    rpcResolves({ data: null, error: { message: 'boom' } })
     const result = await createFranchiseGroup('Sharma Auto Group')
     expect(result).toEqual({ error: 'boom' })
   })
@@ -113,7 +151,7 @@ describe('findCompanyByGstin', () => {
 
 describe('respondToFranchiseInvite', () => {
   it('passes invite id and acceptance to the RPC', async () => {
-    mockRpc.mockResolvedValue({ data: null, error: null })
+    rpcResolves({ data: null, error: null })
     const result = await respondToFranchiseInvite('inv-1', true)
     expect(result).toEqual({ success: true })
     expect(mockRpc).toHaveBeenCalledWith('respond_franchise_invite', {
@@ -123,7 +161,7 @@ describe('respondToFranchiseInvite', () => {
   })
 
   it('surfaces RPC errors (e.g. non-admin caller)', async () => {
-    mockRpc.mockResolvedValue({
+    rpcResolves({
       data: null,
       error: { message: 'Only an admin of the invited company can respond' },
     })

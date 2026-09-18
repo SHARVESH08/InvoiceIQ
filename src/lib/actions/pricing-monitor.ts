@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 const PAGE = '/dashboard/settings/pricing-alerts'
 
@@ -38,6 +39,9 @@ export async function getMonitoredProductIds(): Promise<string[]> {
 
 /** Enable/disable price monitoring for a single product. */
 export async function toggleProductAlert(productId: string, enabled: boolean): Promise<Result> {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   if (!productId) return { error: 'Product is required' }
   const c = await ctx()
   if ('error' in c) return c
@@ -70,6 +74,9 @@ export async function toggleProductAlert(productId: string, enabled: boolean): P
 
 /** Enable/disable monitoring for every categorized product in the company. */
 export async function toggleAllAlerts(enabled: boolean): Promise<Result> {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   const c = await ctx()
   if ('error' in c) return c
 
@@ -112,6 +119,9 @@ export async function toggleAllAlerts(enabled: boolean): Promise<Result> {
 
 /** Enable/disable monitoring for every product in a category (the master toggle). */
 export async function toggleCategoryAlert(category: string, enabled: boolean): Promise<Result> {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   const trimmed = category?.trim() ?? ''
   if (!trimmed) return { error: 'Category is required' }
   const c = await ctx()

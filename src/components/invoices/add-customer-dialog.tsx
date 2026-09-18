@@ -129,7 +129,12 @@ export function AddCustomerDialog({
               <Label>Type</Label>
               <Select
                 value={customerType}
-                onValueChange={(v) => setCustomerType(v as 'b2b' | 'b2c')}
+                onValueChange={(v) => {
+                  const next = v as 'b2b' | 'b2c'
+                  setCustomerType(next)
+                  // B2C has no GSTIN — hide the field and drop anything typed.
+                  if (next === 'b2c') setGstin('')
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -153,16 +158,18 @@ export function AddCustomerDialog({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="qc-gstin">GSTIN</Label>
-            <Input
-              id="qc-gstin"
-              value={gstin}
-              onChange={(e) => setGstin(e.target.value.toUpperCase())}
-              placeholder="27AAPFU0939F1ZV"
-              maxLength={15}
-            />
-          </div>
+          {customerType === 'b2b' && (
+            <div className="space-y-1.5">
+              <Label htmlFor="qc-gstin">GSTIN</Label>
+              <Input
+                id="qc-gstin"
+                value={gstin}
+                onChange={(e) => setGstin(e.target.value.toUpperCase())}
+                placeholder="27AAPFU0939F1ZV"
+                maxLength={15}
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -188,8 +195,10 @@ export function AddCustomerDialog({
           </div>
 
           <p className="text-xs text-muted-foreground">
-            State code / GSTIN drive CGST+SGST vs IGST. You can fill in full details
-            later under Customers.
+            {customerType === 'b2b'
+              ? 'State code / GSTIN drive CGST+SGST vs IGST.'
+              : 'State code drives CGST+SGST vs IGST.'}{' '}
+            You can fill in full details later under Customers.
           </p>
         </div>
 

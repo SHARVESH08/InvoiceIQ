@@ -5,6 +5,7 @@ import { z } from 'zod'
 
 import { createClient } from '@/lib/supabase/server'
 import { ProductImportSchema, ProductSchema } from '@/lib/schemas/product'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // createProduct
@@ -15,6 +16,9 @@ import { ProductImportSchema, ProductSchema } from '@/lib/schemas/product'
 export async function createProduct(
   input: z.infer<typeof ProductSchema>
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('products:write')
+  if (denied) return denied
+
   const parsed = ProductSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -58,6 +62,9 @@ export async function updateProduct(
   id: string,
   input: z.infer<typeof ProductSchema>
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('products:write')
+  if (denied) return denied
+
   const parsed = ProductSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -100,6 +107,9 @@ export async function updateProduct(
 export async function deleteProduct(
   id: string
 ): Promise<{ error: string } | void> {
+  const denied = await requirePermission('products:write')
+  if (denied) return denied
+
   const supabase = await createClient()
 
   const {
@@ -139,6 +149,9 @@ export async function deleteProduct(
 export async function importProducts(
   rows: z.infer<typeof ProductImportSchema>[]
 ): Promise<{ error: string; imported?: number } | never> {
+  const denied = await requirePermission('products:write')
+  if (denied) return denied
+
   if (rows.length === 0) {
     return { error: 'No valid rows to import' }
   }

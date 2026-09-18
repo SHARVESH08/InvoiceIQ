@@ -5,6 +5,7 @@ import { z } from 'zod'
 
 import { createClient } from '@/lib/supabase/server'
 import { SupplierSchema } from '@/lib/schemas/supplier'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // createSupplier
@@ -18,6 +19,9 @@ import { SupplierSchema } from '@/lib/schemas/supplier'
 export async function createSupplier(
   input: z.infer<typeof SupplierSchema>
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('suppliers:write')
+  if (denied) return denied
+
   const parsed = SupplierSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -70,6 +74,9 @@ export async function updateSupplier(
   id: string,
   input: z.infer<typeof SupplierSchema>
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('suppliers:write')
+  if (denied) return denied
+
   const parsed = SupplierSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -123,6 +130,9 @@ export async function updateSupplier(
 export async function deleteSupplier(
   id: string
 ): Promise<{ error: string } | { success: true }> {
+  const denied = await requirePermission('suppliers:write')
+  if (denied) return denied
+
   const supabase = await createClient()
 
   const {

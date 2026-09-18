@@ -28,3 +28,17 @@ export const CustomerSchema = z.object({
 })
 
 export type CustomerInput = z.infer<typeof CustomerSchema>
+
+/**
+ * A B2C customer has no GSTIN by definition, so the forms hide the field for
+ * them. This is the server-side half of that rule: it drops any value a
+ * B2B→B2C switch (or a hand-rolled request) left behind, so the column can
+ * never disagree with customer_type.
+ */
+export function gstinForCustomerType(
+  customerType: CustomerInput['customer_type'],
+  gstin: string | undefined
+): string | null {
+  if (customerType === 'b2c') return null
+  return gstin || null
+}

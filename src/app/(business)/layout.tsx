@@ -6,6 +6,9 @@ import { MobileHeader } from '@/components/mobile-header'
 import { ResumeBanner } from '@/components/resume-banner'
 import { Sidebar } from '@/components/sidebar'
 import { PageTransition } from '@/components/motion/page-transition'
+import { AssistantBubble } from '@/components/chat/assistant-bubble'
+import { getCurrentRole } from '@/lib/auth/require-permission'
+import type { Role } from '@/lib/auth/permissions'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BusinessLayout
@@ -39,6 +42,14 @@ export default async function BusinessLayout({
   let onboardingCompleted = true // default true = no banner shown on error
   let isFranchiseOwner = false
   let memberships: Membership[] = []
+  // null (not undefined) on failure: undefined tells getNavItems "don't filter",
+  // which would hand a broken lookup the full nav. null hides permissioned items.
+  let role: Role | null = null
+  try {
+    role = await getCurrentRole()
+  } catch {
+    role = null
+  }
   try {
     // Franchise context: HQ nav gate + company switcher. Failure never breaks the shell.
     const [groupId, membershipRows] = await Promise.all([
@@ -118,6 +129,7 @@ export default async function BusinessLayout({
         isFranchiseOwner={isFranchiseOwner}
         memberships={memberships}
         defaultCollapsed={defaultCollapsed}
+        role={role}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <MobileHeader
@@ -125,12 +137,15 @@ export default async function BusinessLayout({
           companyType={companyType}
           poPendingCount={poPendingCount}
           isFranchiseOwner={isFranchiseOwner}
+          role={role}
         />
         <main className="flex-1 p-6">
           {!onboardingCompleted && <ResumeBanner step={onboardingStep} />}
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
+      {/* Reachable from every business page; hides itself on /dashboard/chat. */}
+      <AssistantBubble />
     </div>
   )
 }

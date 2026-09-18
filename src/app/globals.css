@@ -16,15 +16,21 @@
     --secondary: 30 5% 13%;
     --secondary-foreground: 40 22% 90%;
     --muted: 30 5% 13%;
-    --muted-foreground: 36 8% 58%;
+    /* 72% L, not 58%: secondary text is overwhelmingly rendered at text-xs on
+       --card / --secondary surfaces, where 58% measured only 5.4:1. This lands
+       at 8.3:1 on those surfaces and 9.9:1 on --background, while staying
+       clearly subordinate to --foreground (90% L). */
+    --muted-foreground: 36 12% 72%;
     --accent: 30 5% 13%;
     --accent-foreground: 40 22% 90%;
-    --destructive: 3 85% 62%;
+    --destructive: 3 88% 69%;
     --destructive-foreground: 40 22% 95%;
     --success: 151 62% 46%;
     --success-foreground: 151 40% 8%;
-    --border: 28 6% 17%;
-    --input: 28 6% 17%;
+    /* Table and card separators sat at 1.36:1 against --background, which read
+       as "no border at all" and made dense tables hard to scan. */
+    --border: 28 7% 24%;
+    --input: 28 7% 24%;
     --ring: 38 91% 55%;
     --radius: 0.625rem;
   }

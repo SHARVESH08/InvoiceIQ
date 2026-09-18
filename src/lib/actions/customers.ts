@@ -5,7 +5,8 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
 import { createClient } from '@/lib/supabase/server'
-import { CustomerSchema } from '@/lib/schemas/customer'
+import { CustomerSchema, gstinForCustomerType } from '@/lib/schemas/customer'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // createCustomer
@@ -17,6 +18,9 @@ import { CustomerSchema } from '@/lib/schemas/customer'
 export async function createCustomer(
   input: z.infer<typeof CustomerSchema>
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('customers:write')
+  if (denied) return denied
+
   const parsed = CustomerSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -72,7 +76,7 @@ export async function createCustomer(
   const { error: insertError } = await supabase.from('customers').insert({
     name: parsed.data.name,
     customer_type: parsed.data.customer_type,
-    gstin: parsed.data.gstin || null,
+    gstin: gstinForCustomerType(parsed.data.customer_type, parsed.data.gstin),
     phone: phone || null,
     email: email || null,
     state_code: parsed.data.state_code || null,
@@ -100,6 +104,9 @@ export async function quickCreateCustomer(
   | { error: string }
   | { customer: { id: string; name: string; gstin: string | null; state_code: string | null } }
 > {
+  const denied = await requirePermission('customers:write')
+  if (denied) return denied
+
   const parsed = CustomerSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -147,7 +154,7 @@ export async function quickCreateCustomer(
     .insert({
       name: parsed.data.name,
       customer_type: parsed.data.customer_type,
-      gstin: parsed.data.gstin || null,
+      gstin: gstinForCustomerType(parsed.data.customer_type, parsed.data.gstin),
       phone: phone || null,
       email: email || null,
       state_code: parsed.data.state_code || null,
@@ -186,6 +193,9 @@ export async function updateCustomer(
   id: string,
   input: z.infer<typeof CustomerSchema>
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('customers:write')
+  if (denied) return denied
+
   const parsed = CustomerSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -242,7 +252,7 @@ export async function updateCustomer(
     .update({
       name: parsed.data.name,
       customer_type: parsed.data.customer_type,
-      gstin: parsed.data.gstin || null,
+      gstin: gstinForCustomerType(parsed.data.customer_type, parsed.data.gstin),
       phone: phone || null,
       email: email || null,
       state_code: parsed.data.state_code || null,
@@ -265,6 +275,9 @@ export async function updateCustomer(
 export async function deleteCustomer(
   id: string
 ): Promise<{ error: string } | void> {
+  const denied = await requirePermission('customers:write')
+  if (denied) return denied
+
   const supabase = await createClient()
 
   const {

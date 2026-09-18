@@ -7,6 +7,13 @@ import { createClient } from '@/lib/supabase/server'
 
 const CRM_PATH = '/crm'
 
+/**
+ * Upper bound on the board/list reads. These were unbounded, so a company with
+ * a large pipeline would ship its entire lead and deal history to the client on
+ * every /crm render — for a board nobody scrolls past the first screen of.
+ */
+const LIST_LIMIT = 500
+
 type Result = { success: true } | { error: string }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -14,6 +21,7 @@ type Result = { success: true } | { error: string }
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { DEAL_STAGES, type DealStage } from '@/lib/crm-constants'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // NOTE: DealStage/DEAL_STAGES live in @/lib/crm-constants — a 'use server'
 // module may only export async functions (even type re-exports break the
@@ -112,10 +120,14 @@ export async function listLeads(): Promise<CrmLead[]> {
     .select('id, name, phone, email, source, status, customer_id, notes, created_at')
     .eq('company_id', c.companyId)
     .order('created_at', { ascending: false })
+    .limit(LIST_LIMIT)
   return (data ?? []) as CrmLead[]
 }
 
 export async function createLead(input: LeadInput): Promise<Result> {
+  const denied = await requirePermission('crm:write')
+  if (denied) return denied
+
   const parsed = LeadSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
 
@@ -136,6 +148,9 @@ export async function createLead(input: LeadInput): Promise<Result> {
 }
 
 export async function updateLeadStatus(leadId: string, status: LeadStatus): Promise<Result> {
+  const denied = await requirePermission('crm:write')
+  if (denied) return denied
+
   if (status === 'converted') {
     return { error: 'Use convertLead to convert a lead' }
   }
@@ -157,6 +172,9 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus): Prom
  * add-customer-dialog) and marks the lead converted, linked to the new row.
  */
 export async function convertLead(leadId: string): Promise<Result> {
+  const denied = await requirePermission('crm:write')
+  if (denied) return denied
+
   const c = await ctx()
   if ('error' in c) return c
 
@@ -223,10 +241,14 @@ export async function listDeals(): Promise<CrmDeal[]> {
     .select('id, title, value, stage, expected_close, lead_id, customer_id, created_at, updated_at')
     .eq('company_id', c.companyId)
     .order('updated_at', { ascending: false })
+    .limit(LIST_LIMIT)
   return (data ?? []) as CrmDeal[]
 }
 
 export async function createDeal(input: DealInput): Promise<Result> {
+  const denied = await requirePermission('crm:write')
+  if (denied) return denied
+
   const parsed = DealSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
 
@@ -248,6 +270,9 @@ export async function createDeal(input: DealInput): Promise<Result> {
 }
 
 export async function moveDealStage(dealId: string, stage: DealStage): Promise<Result> {
+  const denied = await requirePermission('crm:write')
+  if (denied) return denied
+
   if (!DEAL_STAGES.includes(stage)) return { error: 'Invalid stage' }
 
   const c = await ctx()
@@ -282,6 +307,9 @@ const InteractionSchema = z
 export type InteractionInput = z.infer<typeof InteractionSchema>
 
 export async function logInteraction(input: InteractionInput): Promise<Result> {
+  const denied = await requirePermission('crm:write')
+  if (denied) return denied
+
   const parsed = InteractionSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
 
@@ -338,10 +366,14 @@ export async function listOpenTasks(): Promise<CrmTask[]> {
     .eq('company_id', c.companyId)
     .eq('status', 'open')
     .order('due_date', { ascending: true })
+    .limit(LIST_LIMIT)
   return (data ?? []) as CrmTask[]
 }
 
 export async function createTask(input: TaskInput): Promise<Result> {
+  const denied = await requirePermission('crm:write')
+  if (denied) return denied
+
   const parsed = TaskSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
 
@@ -364,6 +396,9 @@ export async function createTask(input: TaskInput): Promise<Result> {
 }
 
 export async function completeTask(taskId: string): Promise<Result> {
+  const denied = await requirePermission('crm:write')
+  if (denied) return denied
+
   const c = await ctx()
   if ('error' in c) return c
 
@@ -390,37 +425,112 @@ export async function getCrmSegments(): Promise<CrmSegments | null> {
   return data as CrmSegments
 }
 
-/** Lead + deal conversion funnel counts for the Insights tab. */
-export async function getCrmFunnel(): Promise<{
+export interface CrmFunnel {
   leads_total: number
   leads_converted: number
   deals_won: number
   deals_lost: number
   won_value: number
-} | null> {
+}
+
+/**
+ * Lead + deal conversion funnel counts for the Insights tab.
+ *
+ * Aggregated in SQL (migration 040). The previous version selected every lead
+ * and every deal row and counted them in JS, so the payload grew with the
+ * pipeline while the result stayed five numbers.
+ */
+export async function getCrmFunnel(): Promise<CrmFunnel | null> {
   const c = await ctx()
   if ('error' in c) return null
 
-  const [leadsRes, dealsRes] = await Promise.all([
-    c.supabase
-      .from('crm_leads')
-      .select('status')
-      .eq('company_id', c.companyId),
+  const { data, error } = await c.supabase.rpc('get_crm_funnel')
+  if (error || !data) return null
+
+  // jsonb numerics arrive as strings over PostgREST for numeric columns.
+  const raw = data as Record<string, unknown>
+  return {
+    leads_total: Number(raw.leads_total ?? 0),
+    leads_converted: Number(raw.leads_converted ?? 0),
+    deals_won: Number(raw.deals_won ?? 0),
+    deals_lost: Number(raw.deals_lost ?? 0),
+    won_value: Number(raw.won_value ?? 0),
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Page loader
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface CrmPageData {
+  deals: CrmDeal[]
+  leads: CrmLead[]
+  tasks: CrmTask[]
+  segments: CrmSegments | null
+  funnel: CrmFunnel | null
+}
+
+/**
+ * Everything /crm renders, behind ONE auth + company-id resolution.
+ *
+ * Calling listDeals/listLeads/listOpenTasks/getCrmSegments/getCrmFunnel
+ * separately (as the page used to) ran ctx() five times — five getUser() calls
+ * and five get_company_id round-trips — before any actual data was fetched.
+ * The five data queries themselves still run concurrently.
+ */
+export async function getCrmPageData(): Promise<CrmPageData> {
+  const empty: CrmPageData = {
+    deals: [],
+    leads: [],
+    tasks: [],
+    segments: null,
+    funnel: null,
+  }
+
+  const c = await ctx()
+  if ('error' in c) return empty
+
+  const [dealsRes, leadsRes, tasksRes, segmentsRes, funnelRes] = await Promise.all([
     c.supabase
       .from('crm_deals')
-      .select('stage, value')
-      .eq('company_id', c.companyId),
+      .select(
+        'id, title, value, stage, expected_close, lead_id, customer_id, created_at, updated_at'
+      )
+      .eq('company_id', c.companyId)
+      .order('updated_at', { ascending: false })
+      .limit(LIST_LIMIT),
+    c.supabase
+      .from('crm_leads')
+      .select('id, name, phone, email, source, status, customer_id, notes, created_at')
+      .eq('company_id', c.companyId)
+      .order('created_at', { ascending: false })
+      .limit(LIST_LIMIT),
+    c.supabase
+      .from('crm_tasks')
+      .select('id, title, due_date, status, customer_id, lead_id, deal_id, created_at')
+      .eq('company_id', c.companyId)
+      .eq('status', 'open')
+      .order('due_date', { ascending: true })
+      .limit(LIST_LIMIT),
+    c.supabase.rpc('get_crm_segments'),
+    c.supabase.rpc('get_crm_funnel'),
   ])
 
-  const leads = leadsRes.data ?? []
-  const deals = dealsRes.data ?? []
+  const funnelRaw = funnelRes.error ? null : (funnelRes.data as Record<string, unknown> | null)
+
   return {
-    leads_total: leads.length,
-    leads_converted: leads.filter((l) => l.status === 'converted').length,
-    deals_won: deals.filter((d) => d.stage === 'won').length,
-    deals_lost: deals.filter((d) => d.stage === 'lost').length,
-    won_value: deals
-      .filter((d) => d.stage === 'won')
-      .reduce((sum, d) => sum + Number(d.value ?? 0), 0),
+    deals: (dealsRes.data ?? []) as CrmDeal[],
+    leads: (leadsRes.data ?? []) as CrmLead[],
+    tasks: (tasksRes.data ?? []) as CrmTask[],
+    segments: segmentsRes.error ? null : (segmentsRes.data as CrmSegments | null),
+    funnel: funnelRaw
+      ? {
+          leads_total: Number(funnelRaw.leads_total ?? 0),
+          leads_converted: Number(funnelRaw.leads_converted ?? 0),
+          deals_won: Number(funnelRaw.deals_won ?? 0),
+          deals_lost: Number(funnelRaw.deals_lost ?? 0),
+          won_value: Number(funnelRaw.won_value ?? 0),
+        }
+      : null,
   }
 }

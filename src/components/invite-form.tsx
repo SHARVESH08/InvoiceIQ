@@ -16,10 +16,15 @@ import {
 } from '@/components/ui/select'
 
 import { inviteSubUser } from '@/lib/actions/invite'
+import {
+  INVITABLE_ROLES,
+  ROLE_LABELS,
+  ROLE_DESCRIPTIONS,
+} from '@/lib/auth/permissions'
 
 const InviteSchema = z.object({
   email: z.string().email('Enter a valid email address'),
-  role: z.enum(['accountant', 'salesperson', 'ca']),
+  role: z.enum(INVITABLE_ROLES),
 })
 
 type FormValues = z.infer<typeof InviteSchema>
@@ -71,9 +76,14 @@ export function InviteForm() {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="accountant">Accountant</SelectItem>
-                  <SelectItem value="salesperson">Salesperson</SelectItem>
-                  <SelectItem value="ca">CA</SelectItem>
+                  {INVITABLE_ROLES.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      <span className="font-medium">{ROLE_LABELS[role]}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {ROLE_DESCRIPTIONS[role]}
+                      </span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />

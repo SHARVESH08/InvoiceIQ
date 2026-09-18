@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // getPricingCategories
@@ -44,6 +45,9 @@ export async function getPricingCategories(): Promise<
 export async function addPricingCategory(
   category: string
 ): Promise<{ error: string } | { success: true; category: { id: string; category: string; created_at: string } }> {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   const trimmed = category?.trim() ?? ''
 
   if (!trimmed) {
@@ -97,6 +101,9 @@ export async function toggleAllProductCategories(
   | { error: string }
   | { success: true; categories: { id: string; category: string; created_at: string }[] }
 > {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   const supabase = await createClient()
 
   const {
@@ -163,6 +170,9 @@ export async function toggleAllProductCategories(
 export async function removePricingCategory(
   categoryId: string
 ): Promise<{ error: string } | { success: true }> {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   if (!categoryId) return { error: 'Category ID is required' }
 
   const supabase = await createClient()

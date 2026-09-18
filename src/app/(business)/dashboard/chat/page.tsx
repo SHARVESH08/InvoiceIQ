@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { ChatPanel } from './_components/chat-panel'
+import { ChatPanel } from '@/components/chat/chat-panel'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Chat page — RSC shell

@@ -31,7 +31,11 @@ function setupClient(user: object | null = { id: 'u1' }, companyId: string | nul
         error: user ? null : new Error('not authenticated'),
       }),
     },
-    rpc: vi.fn().mockResolvedValue({ data: companyId, error: null }),
+    // get_company_role feeds requirePermission(); everything else is
+    // get_company_id. 'admin' preserves the pre-IAM behaviour of these tests.
+    rpc: vi.fn().mockImplementation((fn: string) =>
+      Promise.resolve({ data: fn === 'get_company_role' ? 'admin' : companyId, error: null })
+    ),
     from: vi.fn().mockImplementation((table: string) =>
       table === 'invoices' ? invoiceChain : gstChain
     ),

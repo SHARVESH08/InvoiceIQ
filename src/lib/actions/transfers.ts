@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { CreateTransferSchema } from '@/lib/schemas/transfer'
 import { revalidateLowStockTag } from '@/lib/cache/low-stock'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -151,6 +152,9 @@ export async function getTransfers(
 export async function createTransfer(
   input: z.infer<typeof CreateTransferSchema>
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   const parsed = CreateTransferSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -241,6 +245,9 @@ export async function createTransfer(
 export async function approveTransfer(
   transferId: string
 ): Promise<{ success: true } | { error: string }> {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   const supabase = await createClient()
 
   const {
@@ -303,6 +310,9 @@ export async function approveTransfer(
 export async function rejectTransfer(
   transferId: string
 ): Promise<{ success: true } | { error: string }> {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   const supabase = await createClient()
 
   const {

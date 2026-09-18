@@ -3,9 +3,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const state: {
   user: unknown
   companyId: unknown
+  role: unknown
   selectResult: unknown
   mutationResult: unknown
-} = { user: { id: 'u1' }, companyId: 'co1', selectResult: { data: [], error: null }, mutationResult: { error: null } }
+} = {
+  user: { id: 'u1' },
+  companyId: 'co1',
+  // Read by requirePermission() via the get_company_role RPC.
+  role: 'admin',
+  selectResult: { data: [], error: null },
+  mutationResult: { error: null },
+}
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
@@ -30,7 +38,10 @@ vi.mock('@/lib/supabase/server', () => {
   return {
     createClient: vi.fn().mockResolvedValue({
       auth: { getUser: vi.fn(async () => ({ data: { user: state.user } })) },
-      rpc: vi.fn(async () => ({ data: state.companyId })),
+      rpc: vi.fn(async (fn: string) => ({
+        data: fn === 'get_company_role' ? state.role : state.companyId,
+        error: null,
+      })),
       from: vi.fn(() => builder()),
     }),
   }
@@ -41,6 +52,7 @@ import { toggleProductAlert, toggleCategoryAlert } from './pricing-monitor'
 beforeEach(() => {
   state.user = { id: 'u1' }
   state.companyId = 'co1'
+  state.role = 'admin'
   state.selectResult = { data: [], error: null }
   state.mutationResult = { error: null }
 })

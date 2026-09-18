@@ -76,7 +76,10 @@ const intraStateFixture: InvoiceForPdf = {
   ],
 }
 
-describe('invoice-pdf', () => {
+// @react-pdf/renderer renders a real document per call. That takes ~1.5s on an
+// idle machine but comfortably exceeds vitest's 5s default when the rest of the
+// suite is running in parallel, which made these tests intermittently fail.
+describe('invoice-pdf', { timeout: 30_000 }, () => {
   it('PDF-01: generateInvoicePdf returns a non-empty Node Buffer', async () => {
     const buffer = await generateInvoicePdf(intraStateFixture)
     expect(buffer).toBeDefined()

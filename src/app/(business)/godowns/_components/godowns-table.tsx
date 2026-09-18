@@ -89,13 +89,13 @@ export function GodownsTable({ godowns }: GodownsTableProps) {
 
     if (created === '1') {
       toast.success('Godown created.')
-      router.replace('/settings/godowns')
+      router.replace('/godowns')
     } else if (updated === '1') {
       toast.success('Godown updated.')
-      router.replace('/settings/godowns')
+      router.replace('/godowns')
     } else if (deactivated === '1') {
       toast.success('Godown deactivated.')
-      router.replace('/settings/godowns')
+      router.replace('/godowns')
     }
   }, [searchParams, router])
 

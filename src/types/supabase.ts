@@ -1131,6 +1131,7 @@ export type Database = {
         Returns: string
       }
       get_company_id: { Args: never; Returns: string }
+      get_company_role: { Args: never; Returns: string }
       get_indian_fy: { Args: { p_date?: string }; Returns: string }
       mark_invoice_sent: {
         Args: { p_company_id: string; p_invoice_id: string }

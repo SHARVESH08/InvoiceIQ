@@ -101,6 +101,10 @@ beforeEach(() => {
     if (rpcName === 'get_company_id') {
       return Promise.resolve({ data: mockCompanyId, error: null })
     }
+    // requirePermission() resolves the caller's role through this RPC.
+    if (rpcName === 'get_company_role') {
+      return Promise.resolve({ data: 'admin', error: null })
+    }
     if (rpcName === 'get_company_context') {
       return Promise.resolve({
         data: { company_id: mockCompanyId, company_type: 'OEM' },
@@ -284,6 +288,9 @@ describe('dispatch_po_and_create_invoice RPC', () => {
       if (rpcName === 'get_company_id') {
         return Promise.resolve({ data: mockCompanyId, error: null })
       }
+      if (rpcName === 'get_company_role') {
+        return Promise.resolve({ data: 'admin', error: null })
+      }
       if (rpcName === 'dispatch_po_and_create_invoice') {
         return Promise.resolve({
           data: null,
@@ -308,6 +315,9 @@ describe('dispatch_po_and_create_invoice RPC', () => {
     mockSupabaseRpc.mockImplementation((rpcName: string) => {
       if (rpcName === 'get_company_id') {
         return Promise.resolve({ data: mockCompanyId, error: null })
+      }
+      if (rpcName === 'get_company_role') {
+        return Promise.resolve({ data: 'admin', error: null })
       }
       if (rpcName === 'dispatch_po_and_create_invoice') {
         return Promise.resolve({
@@ -337,6 +347,9 @@ describe('receive_po_and_update_inventory RPC', () => {
       if (rpcName === 'get_company_id') {
         return Promise.resolve({ data: mockCompanyId, error: null })
       }
+      if (rpcName === 'get_company_role') {
+        return Promise.resolve({ data: 'admin', error: null })
+      }
       if (rpcName === 'receive_po_and_update_inventory') {
         return Promise.resolve({ data: receiptInvoiceId, error: null })
       }
@@ -362,6 +375,9 @@ describe('receive_po_and_update_inventory RPC', () => {
     mockSupabaseRpc.mockImplementation((rpcName: string) => {
       if (rpcName === 'get_company_id') {
         return Promise.resolve({ data: mockCompanyId, error: null })
+      }
+      if (rpcName === 'get_company_role') {
+        return Promise.resolve({ data: 'admin', error: null })
       }
       if (rpcName === 'receive_po_and_update_inventory') {
         return Promise.resolve({

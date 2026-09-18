@@ -5,6 +5,7 @@ import { groupInvoicesIntoGstr1 } from '@/lib/gst/gstr1'
 import type { InvoiceRow, InvoiceItemRow } from '@/lib/gst/gstr1'
 import { computeGstr3b } from '@/lib/gst/gstr3b'
 import { aggregateMonthlyForGstr9 } from '@/lib/gst/gstr9'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 type ActionResult<T = unknown> = { error: string } | { success: true; data?: T }
 
@@ -140,6 +141,9 @@ export async function saveGstr3b(
   period: string,
   manualItc: { igst: number; cgst: number; sgst: number }
 ): Promise<ActionResult> {
+  const denied = await requirePermission('gst:write')
+  if (denied) return denied
+
   const auth = await getAuthContext()
   if ('error' in auth) return { error: auth.error }
   const { supabase, companyId } = auth
@@ -202,6 +206,9 @@ export async function updatePeriodStatus(
   period: string,
   status: 'draft' | 'ready' | 'filed'
 ): Promise<ActionResult> {
+  const denied = await requirePermission('gst:write')
+  if (denied) return denied
+
   const auth = await getAuthContext()
   if ('error' in auth) return { error: auth.error }
   const { supabase, companyId } = auth

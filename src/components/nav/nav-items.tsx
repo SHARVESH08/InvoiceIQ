@@ -15,8 +15,11 @@ import {
   Building2,
   SquareKanban,
   PhoneCall,
+  Warehouse,
   type LucideIcon,
 } from 'lucide-react'
+
+import { can, type Permission, type Role } from '@/lib/auth/permissions'
 
 export interface NavItem {
   href: string
@@ -26,6 +29,11 @@ export interface NavItem {
   badge?: number
   /** How the active route is matched. Defaults to 'prefix'. */
   match?: 'exact' | 'prefix'
+  /**
+   * Permission required to see this entry. Omitted means "everyone in a
+   * company". Hiding is cosmetic — the matching server actions enforce it.
+   */
+  permission?: Permission
 }
 
 export interface NavContext {
@@ -34,6 +42,11 @@ export interface NavContext {
   poPendingCount?: number
   /** True when the user owns a franchise group — surfaces the HQ nav entry. */
   isFranchiseOwner?: boolean
+  /**
+   * The caller's role. Undefined means "don't filter" so existing callers and
+   * tests keep their previous behaviour.
+   */
+  role?: Role | null
 }
 
 export interface NavGroups {
@@ -64,7 +77,13 @@ export function getCustomerNavItems(): NavGroups {
  * both the desktop sidebar and the mobile drawer.
  */
 export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem[] } {
-  const { companyType = null, lowStockCount = 0, poPendingCount = 0, isFranchiseOwner = false } = ctx
+  const {
+    companyType = null,
+    lowStockCount = 0,
+    poPendingCount = 0,
+    isFranchiseOwner = false,
+    role,
+  } = ctx
 
   const main: NavItem[] = [
     // HQ leads the nav for franchise owners: the group view is their home base.
@@ -72,17 +91,19 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
       ? [{ href: '/hq', label: 'HQ', icon: Building2 } satisfies NavItem]
       : []),
     { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid, match: 'exact' },
-    { href: '/invoices', label: 'Invoices', icon: FileText },
+    { href: '/invoices', label: 'Invoices', icon: FileText, permission: 'invoices:read' },
     {
       href: lowStockCount > 0 ? '/inventory?filter=low_stock' : '/inventory',
       label: 'Inventory',
       icon: Boxes,
       badge: lowStockCount > 0 ? lowStockCount : undefined,
+      permission: 'inventory:read',
     },
-    { href: '/products', label: 'Products', icon: Tags },
-    { href: '/customers', label: 'Customers', icon: Users },
-    { href: '/crm', label: 'CRM', icon: SquareKanban },
-    { href: '/suppliers', label: 'Suppliers', icon: Truck },
+    { href: '/godowns', label: 'Godowns', icon: Warehouse, permission: 'godowns:read' },
+    { href: '/products', label: 'Products', icon: Tags, permission: 'products:read' },
+    { href: '/customers', label: 'Customers', icon: Users, permission: 'customers:read' },
+    { href: '/crm', label: 'CRM', icon: SquareKanban, permission: 'crm:read' },
+    { href: '/suppliers', label: 'Suppliers', icon: Truck, permission: 'suppliers:read' },
   ]
 
   if (companyType === 'OEM' || companyType === 'Distributor') {
@@ -93,25 +114,47 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
       // Badge is Distributor-only by design: it counts incoming POs (status='sent')
       // awaiting the distributor. OEMs see the link but no pending badge.
       badge: companyType === 'Distributor' && poPendingCount > 0 ? poPendingCount : undefined,
+      permission: 'purchase_orders:read',
     })
   }
   if (companyType === 'Retailer') {
-    main.push({ href: '/dashboard/whatsapp', label: 'WhatsApp Orders', icon: MessageSquare })
+    main.push({
+      href: '/dashboard/whatsapp',
+      label: 'WhatsApp Orders',
+      icon: MessageSquare,
+      permission: 'invoices:write',
+    })
   }
 
-  main.push({ href: '/dashboard/reports', label: 'Reports', icon: BarChart3 })
-  main.push({ href: '/dashboard/gst', label: 'GST', icon: Receipt })
-  main.push({ href: '/dashboard/chat', label: 'Chat', icon: Sparkles })
-  main.push({ href: '/dashboard/settings/pricing-alerts', label: 'Pricing Alerts', icon: BellRing })
+  main.push({
+    href: '/dashboard/reports',
+    label: 'Reports',
+    icon: BarChart3,
+    permission: 'reports:read',
+  })
+  main.push({ href: '/dashboard/gst', label: 'GST', icon: Receipt, permission: 'gst:read' })
+  // No Chat entry: the assistant is the floating bubble (AssistantBubble), which
+  // is present on every business page. /dashboard/chat still works as a deep link
+  // and is reachable from the bubble's expand control.
+  main.push({
+    href: '/dashboard/settings/pricing-alerts',
+    label: 'Pricing Alerts',
+    icon: BellRing,
+    permission: 'inventory:read',
+  })
 
   const footer: NavItem[] = [
-    // Where a showroom admin finds (and accepts) incoming franchise invites.
-    { href: '/settings/franchise', label: 'Franchise', icon: Building2 },
-    { href: '/settings/telephony', label: 'Telephony', icon: PhoneCall },
-    { href: '/settings/godowns', label: 'Settings', icon: Settings },
+    // Franchise (where a showroom admin accepts invites) and Telephony are tabs
+    // inside Settings now, so one entry covers all of them.
+    { href: '/settings', label: 'Settings', icon: Settings, permission: 'settings:read' },
   ]
 
-  return { main, footer }
+  // role === undefined means the caller didn't supply one — leave the nav
+  // untouched rather than silently hiding everything.
+  if (role === undefined) return { main, footer }
+
+  const allowed = (item: NavItem) => !item.permission || can(role, item.permission)
+  return { main: main.filter(allowed), footer: footer.filter(allowed) }
 }
 
 export function isNavItemActive(

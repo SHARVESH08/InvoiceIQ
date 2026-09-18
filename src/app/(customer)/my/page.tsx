@@ -5,6 +5,7 @@ import { formatRupees } from '@/lib/format'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CustomerInvoiceTable } from './_components/customer-invoice-table'
 import { CustomerChartPanel } from './_components/customer-chart-panel'
+import { ExportInvoicesButton } from './_components/export-invoices-button'
 
 interface Props {
   searchParams: Promise<{ page?: string }>
@@ -45,7 +46,10 @@ export default async function MyInvoicesPage(props: Props) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">My Invoices</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-bold">My Invoices</h1>
+        <ExportInvoicesButton disabled={(count ?? 0) === 0} />
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card>

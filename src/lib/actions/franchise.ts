@@ -5,6 +5,7 @@ import { z } from 'zod'
 
 import { createClient } from '@/lib/supabase/server'
 import { GSTIN_REGEX } from '@/lib/gstin'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 type Result = { success: true } | { error: string }
 
@@ -165,6 +166,9 @@ export async function getCompanyInvites(): Promise<CompanyInvite[]> {
 const GroupNameSchema = z.string().trim().min(2, 'Name too short').max(80, 'Name too long')
 
 export async function createFranchiseGroup(name: string): Promise<Result> {
+  const denied = await requirePermission('franchise:manage')
+  if (denied) return denied
+
   const parsed = GroupNameSchema.safeParse(name)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid name' }
@@ -198,6 +202,9 @@ export async function inviteCompanyToFranchise(
   groupId: string,
   companyId: string
 ): Promise<Result> {
+  const denied = await requirePermission('franchise:manage')
+  if (denied) return denied
+
   const supabase = await createClient()
   const { error } = await supabase.rpc('invite_company_to_franchise', {
     p_group_id: groupId,
@@ -212,6 +219,9 @@ export async function respondToFranchiseInvite(
   inviteId: string,
   accept: boolean
 ): Promise<Result> {
+  const denied = await requirePermission('franchise:manage')
+  if (denied) return denied
+
   const supabase = await createClient()
   const { error } = await supabase.rpc('respond_franchise_invite', {
     p_invite_id: inviteId,

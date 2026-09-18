@@ -5,6 +5,19 @@ import { z } from 'zod'
 
 import { createClient } from '@/lib/supabase/server'
 import { GodownSchema } from '@/lib/schemas/godown'
+import { requirePermission } from '@/lib/auth/require-permission'
+
+/**
+ * Godowns are managed from two places: the full list at /godowns, and the
+ * details-only editor under Settings. Actions redirect back to whichever one
+ * invoked them. The type is a closed union so a caller can't be talked into
+ * redirecting somewhere arbitrary.
+ */
+export type GodownReturnTo = '/godowns' | '/settings/godowns'
+
+function isReturnTo(value: unknown): value is GodownReturnTo {
+  return value === '/godowns' || value === '/settings/godowns'
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // createGodown
@@ -15,6 +28,9 @@ import { GodownSchema } from '@/lib/schemas/godown'
 export async function createGodown(
   input: z.infer<typeof GodownSchema>
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('godowns:write')
+  if (denied) return denied
+
   const parsed = GodownSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -50,7 +66,7 @@ export async function createGodown(
     return { error: insertError.message }
   }
 
-  redirect('/settings/godowns?created=1')
+  redirect('/godowns?created=1')
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,8 +76,13 @@ export async function createGodown(
 // ─────────────────────────────────────────────────────────────────────────────
 export async function updateGodown(
   id: string,
-  input: z.infer<typeof GodownSchema>
+  input: z.infer<typeof GodownSchema>,
+  returnTo: GodownReturnTo = '/godowns'
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('godowns:write')
+  if (denied) return denied
+
+  const target = isReturnTo(returnTo) ? returnTo : '/godowns'
   const parsed = GodownSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -99,7 +120,7 @@ export async function updateGodown(
     return { error: updateError.message }
   }
 
-  redirect('/settings/godowns?updated=1')
+  redirect(`${target}?updated=1`)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -119,6 +140,9 @@ export async function updateGodown(
 export async function deactivateGodown(
   id: string
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('godowns:write')
+  if (denied) return denied
+
   if (!id || typeof id !== 'string') {
     return { error: 'Invalid godown id' }
   }
@@ -213,5 +237,5 @@ export async function deactivateGodown(
     return { error: updateError.message }
   }
 
-  redirect('/settings/godowns?deactivated=1')
+  redirect('/godowns?deactivated=1')
 }

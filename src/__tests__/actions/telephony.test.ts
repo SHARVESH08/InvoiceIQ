@@ -35,11 +35,12 @@ import { initiateCall, saveTelephonySettings } from '@/lib/actions/telephony'
 
 function authOk() {
   mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null })
-  mockRpc.mockImplementation((fn: string) =>
-    fn === 'get_company_id'
-      ? Promise.resolve({ data: 'company-1', error: null })
-      : Promise.resolve({ data: null, error: null })
-  )
+  mockRpc.mockImplementation((fn: string) => {
+    if (fn === 'get_company_id') return Promise.resolve({ data: 'company-1', error: null })
+    // requirePermission() resolves the caller's role through this RPC.
+    if (fn === 'get_company_role') return Promise.resolve({ data: 'admin', error: null })
+    return Promise.resolve({ data: null, error: null })
+  })
 }
 
 /** admin.from() stub returning settings/agent rows per table. */
@@ -132,6 +133,7 @@ describe('parseCallbackBody', () => {
 
 describe('initiateCall', () => {
   it('requires a linked record', async () => {
+    authOk()
     const result = await initiateCall({ to_number: '9876543210' })
     expect(result).toEqual({ error: 'Call must be linked to a customer, lead, or deal' })
   })

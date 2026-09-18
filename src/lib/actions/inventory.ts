@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { SetStockLevelSchema } from '@/lib/schemas/inventory'
 import { revalidateLowStockTag } from '@/lib/cache/low-stock'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -237,6 +238,9 @@ export async function getInventoryByProduct(
 export async function setStockLevel(
   input: z.infer<typeof SetStockLevelSchema>
 ): Promise<{ success: boolean } | { error: string }> {
+  const denied = await requirePermission('inventory:write')
+  if (denied) return denied
+
   const parsed = SetStockLevelSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }

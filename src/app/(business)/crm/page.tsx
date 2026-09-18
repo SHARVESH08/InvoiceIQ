@@ -1,10 +1,4 @@
-import {
-  listDeals,
-  listLeads,
-  listOpenTasks,
-  getCrmSegments,
-  getCrmFunnel,
-} from '@/lib/actions/crm'
+import { getCrmPageData } from '@/lib/actions/crm'
 import { getTelephonyStatus } from '@/lib/actions/telephony'
 import { CrmTabs } from './_components/crm-tabs'
 
@@ -13,17 +7,13 @@ export const dynamic = 'force-dynamic'
 // ─────────────────────────────────────────────────────────────────────────────
 // CRM — Pipeline / Leads / Follow-ups / Insights.
 // RSC fetches everything once; tabs are pure client presentation over it.
+//
+// getCrmPageData bundles the five CRM reads behind a single auth + company-id
+// resolution; telephony status is independent, so it runs alongside.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default async function CrmPage() {
-  const [deals, leads, tasks, segments, funnel, telephony] = await Promise.all([
-    listDeals(),
-    listLeads(),
-    listOpenTasks(),
-    getCrmSegments(),
-    getCrmFunnel(),
-    getTelephonyStatus(),
-  ])
+  const [data, telephony] = await Promise.all([getCrmPageData(), getTelephonyStatus()])
 
   return (
     <div className="space-y-6">
@@ -35,11 +25,11 @@ export default async function CrmPage() {
       </div>
 
       <CrmTabs
-        deals={deals}
-        leads={leads}
-        tasks={tasks}
-        segments={segments}
-        funnel={funnel}
+        deals={data.deals}
+        leads={data.leads}
+        tasks={data.tasks}
+        segments={data.segments}
+        funnel={data.funnel}
         telephonyEnabled={telephony.configured}
       />
     </div>

@@ -21,6 +21,7 @@ import { generateInvoicePdf, type InvoiceForPdf } from '@/lib/pdf/invoice-pdf'
 import { uploadPdfToStorage } from '@/lib/pdf/storage'
 import { createPaymentLink } from '@/lib/payments/razorpay'
 import { sendInvoiceEmail } from '@/lib/email/resend'
+import { requirePermission } from '@/lib/auth/require-permission'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: derive GST invoice classification (B2B / B2CS / B2CL)
@@ -51,6 +52,9 @@ export async function createInvoice(
   | { sent: true; invoiceId: string; emailFailed: boolean }
   | never
 > {
+  const denied = await requirePermission('invoices:write')
+  if (denied) return denied
+
   const parsed = InvoiceSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -291,6 +295,9 @@ export async function updateInvoice(
   id: string,
   input: InvoiceInput
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('invoices:write')
+  if (denied) return denied
+
   const parsed = InvoiceSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' }
@@ -496,6 +503,9 @@ export async function updateInvoice(
 export async function deleteInvoice(
   id: string
 ): Promise<{ error: string } | void> {
+  const denied = await requirePermission('invoices:write')
+  if (denied) return denied
+
   const supabase = await createClient()
 
   const {
@@ -558,6 +568,9 @@ export async function deleteInvoice(
 export async function markAsSent(
   id: string
 ): Promise<{ error: string } | { success: true; emailFailed: boolean }> {
+  const denied = await requirePermission('invoices:write')
+  if (denied) return denied
+
   const supabase = await createClient()
 
   const {
@@ -739,6 +752,9 @@ export async function markAsSent(
 export async function cancelInvoice(
   id: string
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('invoices:write')
+  if (denied) return denied
+
   const supabase = await createClient()
 
   const {
@@ -796,6 +812,9 @@ export async function recordPayment(
   invoiceId: string,
   input: PaymentInput
 ): Promise<{ error: string } | never> {
+  const denied = await requirePermission('invoices:write')
+  if (denied) return denied
+
   const parsed = PaymentSchema.safeParse(input)
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid payment input' }

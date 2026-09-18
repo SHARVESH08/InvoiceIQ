@@ -38,11 +38,13 @@ import { groupTasks } from '@/app/(business)/crm/_components/followups-list'
 
 function authOk() {
   mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null })
-  mockRpc.mockImplementation((fn: string) =>
-    fn === 'get_company_id'
-      ? Promise.resolve({ data: 'company-1', error: null })
-      : Promise.resolve({ data: null, error: null })
-  )
+  mockRpc.mockImplementation((fn: string) => {
+    if (fn === 'get_company_id') return Promise.resolve({ data: 'company-1', error: null })
+    // Every mutating action now opens with requirePermission(), which resolves
+    // the caller's role through this RPC. Admin = the previous behaviour.
+    if (fn === 'get_company_role') return Promise.resolve({ data: 'admin', error: null })
+    return Promise.resolve({ data: null, error: null })
+  })
 }
 
 beforeEach(() => {
@@ -53,8 +55,22 @@ beforeEach(() => {
 
 describe('createLead', () => {
   it('rejects an empty name before touching the database', async () => {
+    authOk()
     const result = await createLead({ name: '  ', source: 'walk_in' })
     expect(result).toEqual({ error: 'Name is required' })
+    expect(mockFrom).not.toHaveBeenCalled()
+  })
+
+  it('refuses a caller whose role cannot write to the CRM', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null })
+    mockRpc.mockImplementation((fn: string) =>
+      fn === 'get_company_role'
+        ? Promise.resolve({ data: 'accountant', error: null })
+        : Promise.resolve({ data: 'company-1', error: null })
+    )
+
+    const result = await createLead({ name: 'Priya Nair', source: 'walk_in' })
+    expect(result).toHaveProperty('error')
     expect(mockFrom).not.toHaveBeenCalled()
   })
 
@@ -221,33 +237,25 @@ describe('groupTasks', () => {
 })
 
 describe('getCrmFunnel', () => {
-  it('computes conversion and win totals', async () => {
-    authOk()
-    mockFrom.mockImplementation((table: string) => ({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue(
-          table === 'crm_leads'
-            ? {
-                data: [
-                  { status: 'new' },
-                  { status: 'converted' },
-                  { status: 'converted' },
-                  { status: 'lost' },
-                ],
-                error: null,
-              }
-            : {
-                data: [
-                  { stage: 'won', value: 100 },
-                  { stage: 'won', value: 250 },
-                  { stage: 'lost', value: 80 },
-                  { stage: 'proposal', value: 40 },
-                ],
-                error: null,
-              }
-        ),
-      }),
-    }))
+  it('maps the get_crm_funnel RPC payload, coercing numeric strings', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null })
+    mockRpc.mockImplementation((fn: string) => {
+      if (fn === 'get_company_id') return Promise.resolve({ data: 'company-1', error: null })
+      if (fn === 'get_crm_funnel') {
+        return Promise.resolve({
+          data: {
+            leads_total: 4,
+            leads_converted: 2,
+            deals_won: 2,
+            deals_lost: 1,
+            // numeric(12,2) arrives as a string over PostgREST
+            won_value: '350.00',
+          },
+          error: null,
+        })
+      }
+      return Promise.resolve({ data: null, error: null })
+    })
 
     const funnel = await getCrmFunnel()
     expect(funnel).toEqual({
@@ -257,5 +265,17 @@ describe('getCrmFunnel', () => {
       deals_lost: 1,
       won_value: 350,
     })
+    // Aggregation happens in SQL now — no table scan from the app.
+    expect(mockFrom).not.toHaveBeenCalled()
+  })
+
+  it('returns null when the RPC errors', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null })
+    mockRpc.mockImplementation((fn: string) =>
+      fn === 'get_company_id'
+        ? Promise.resolve({ data: 'company-1', error: null })
+        : Promise.resolve({ data: null, error: { message: 'boom' } })
+    )
+    expect(await getCrmFunnel()).toBeNull()
   })
 })

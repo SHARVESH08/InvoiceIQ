@@ -49,6 +49,10 @@ export default function CreateCustomerPage() {
     mode: 'onBlur',
   })
 
+  // B2C customers have no GSTIN, so the field is hidden for them entirely.
+  const customerType = form.watch('customer_type')
+  const isB2B = customerType === 'b2b'
+
   async function onSubmit(values: CustomerInput) {
     const result = await createCustomer(values)
     if (result?.error) {
@@ -99,7 +103,16 @@ export default function CreateCustomerPage() {
                     <FormItem>
                       <FormLabel>Customer Type</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value)
+                          // Switching to B2C hides the GSTIN input — drop any
+                          // value already typed so it can't be submitted, and
+                          // release the state code the GSTIN had pinned.
+                          if (value === 'b2c') {
+                            form.setValue('gstin', '')
+                            setGstinStateName(null)
+                          }
+                        }}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -120,8 +133,11 @@ export default function CreateCustomerPage() {
 
               {/* Contact & Tax */}
               <div className="space-y-4">
-                <h2 className="text-base font-bold">Contact &amp; Tax</h2>
+                <h2 className="text-base font-bold">
+                  {isB2B ? 'Contact & Tax' : 'Contact'}
+                </h2>
 
+                {isB2B && (
                 <FormField
                   control={form.control}
                   name="gstin"
@@ -149,7 +165,7 @@ export default function CreateCustomerPage() {
                         />
                       </FormControl>
                       <FormDescription>
-                        15-character GST Identification Number (B2B customers only)
+                        15-character GST Identification Number
                         {gstinStateName && (
                           <span className="ml-2 text-foreground font-medium">
                             State: {gstinStateName}
@@ -160,6 +176,7 @@ export default function CreateCustomerPage() {
                     </FormItem>
                   )}
                 />
+                )}
 
                 <FormField
                   control={form.control}

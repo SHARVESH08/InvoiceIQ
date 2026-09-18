@@ -50,3 +50,10 @@ nul
 
 # manual QA notes — not needed to run the app
 docs/MANUAL-TESTING-CHECKLIST.md
+
+# local admin/seed tooling — reads .env.local, not part of the deployed app
+/scripts/
+
+# presentation decks — build artifacts, regenerate rather than version
+*.pptx
+/docs/deck/
