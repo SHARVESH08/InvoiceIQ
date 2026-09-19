@@ -17,7 +17,7 @@ import { ShowroomComparisonTable } from './_components/showroom-comparison-table
 export const dynamic = 'force-dynamic'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HQ Overview — consolidated franchise view.
+// Franchise Overview — consolidated franchise view.
 // All data comes from SECURITY DEFINER RPCs that gate on franchise_owners and
 // return aggregates only; no row-level data crosses the tenant boundary here.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -32,7 +32,7 @@ export default async function HqOverviewPage() {
         <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Building2 className="size-6" />
         </span>
-        <h1 className="font-display text-2xl font-semibold">Set up your franchise HQ</h1>
+        <h1 className="font-display text-2xl font-semibold">Set up your franchise</h1>
         <p className="text-sm text-muted-foreground">
           Create a group, invite your showrooms, and see revenue, outstanding and
           stock across all of them in one place. Each showroom keeps its own

@@ -39,7 +39,7 @@ export interface NavContext {
   companyType?: string | null
   lowStockCount?: number
   poPendingCount?: number
-  /** True when the user owns a franchise group — surfaces the HQ nav entry. */
+  /** True when the user owns a franchise group — surfaces the Franchise nav entry. */
   isFranchiseOwner?: boolean
   /**
    * The caller's role. Undefined means "don't filter" so existing callers and
@@ -88,9 +88,9 @@ export function getNavItems(ctx: NavContext): { main: NavItem[]; footer: NavItem
   } = ctx
 
   const main: NavItem[] = [
-    // HQ leads the nav for franchise owners: the group view is their home base.
+    // Franchise leads the nav for franchise owners: the group view is their home base.
     ...(isFranchiseOwner
-      ? [{ href: '/hq', label: 'HQ', icon: Building2 } satisfies NavItem]
+      ? [{ href: '/hq', label: 'Franchise', icon: Building2 } satisfies NavItem]
       : []),
     { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid, match: 'exact' },
     { href: '/invoices', label: 'Invoices', icon: FileText, permission: 'invoices:read' },

@@ -54,10 +54,10 @@ describe('getNavItems role gating', () => {
     }
   })
 
-  it('hides HQ by default and leads with it for franchise owners', () => {
-    expect(getNavItems({}).main.map((i) => i.label)).not.toContain('HQ')
+  it('hides Franchise by default and leads with it for franchise owners', () => {
+    expect(getNavItems({}).main.map((i) => i.label)).not.toContain('Franchise')
     const ownerLabels = getNavItems({ isFranchiseOwner: true }).main.map((i) => i.label)
-    expect(ownerLabels[0]).toBe('HQ')
+    expect(ownerLabels[0]).toBe('Franchise')
     expect(ownerLabels[1]).toBe('Dashboard')
   })
 
