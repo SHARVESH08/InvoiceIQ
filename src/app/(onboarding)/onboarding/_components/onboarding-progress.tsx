@@ -15,7 +15,6 @@ export function OnboardingProgress({ currentStep }: OnboardingProgressProps) {
       {STEPS.map((s, index) => {
         const isComplete = s.number < currentStep
         const isActive = s.number === currentStep
-        const isFuture = s.number > currentStep
 
         const circleClass = isComplete
           ? 'bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold'

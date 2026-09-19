@@ -22,6 +22,37 @@ export type HsnRow = {
   total_tax: number
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Row shapes returned by the PostgREST selects below. Numerics come over the
+// wire as strings, and an embedded relation is an object or an array depending
+// on the cardinality PostgREST infers — hence the unions. Every field is read
+// through Number()/?? at the use site.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type Numeric = number | string | null
+
+/** invoice_items joined to invoices, for the HSN summary. */
+type HsnItemRow = {
+  hsn_code: string | null
+  taxable_amount: Numeric
+  cgst_amount: Numeric
+  sgst_amount: Numeric
+  igst_amount: Numeric
+}
+
+/** invoices joined to customers, for the CSV/Excel export. */
+type ExportSourceRow = {
+  invoice_number: string | null
+  invoice_date: string | null
+  taxable_amount: Numeric
+  cgst_amount: Numeric
+  sgst_amount: Numeric
+  igst_amount: Numeric
+  total_amount: Numeric
+  payment_status: string | null
+  customers: { name: string } | { name: string }[] | null
+}
+
 export type ExportInvoiceRow = {
   invoice_number: string
   invoice_date: string
@@ -100,9 +131,11 @@ export async function getPnlSummary(
   if (error) return { error: error.message }
   if (!data) return { error: 'No data returned from RPC' }
 
-  const revenue = Number((data as any).revenue ?? 0)
-  const cogs = Number((data as any).cogs ?? 0)
-  const gross_margin = Number((data as any).gross_margin ?? 0)
+  // get_pnl_summary returns a jsonb object; numerics arrive as strings.
+  const pnl = data as Partial<Record<'revenue' | 'cogs' | 'gross_margin', number | string>>
+  const revenue = Number(pnl.revenue ?? 0)
+  const cogs = Number(pnl.cogs ?? 0)
+  const gross_margin = Number(pnl.gross_margin ?? 0)
   const margin_percent =
     revenue > 0 ? Math.round((gross_margin / revenue) * 100 * 100) / 100 : 0
 
@@ -132,7 +165,7 @@ export async function getHsnSummary(
   if (error) return { error: error.message }
 
   const map = new Map<string, HsnRow>()
-  for (const item of (data ?? []) as any[]) {
+  for (const item of (data ?? []) as HsnItemRow[]) {
     const code: string = item.hsn_code ?? ''
     const taxable = Number(item.taxable_amount ?? 0)
     const cgst = Number(item.cgst_amount ?? 0)
@@ -183,7 +216,7 @@ export async function listInvoicesForExport(
 
   if (error) return { error: error.message }
 
-  const invoices: ExportInvoiceRow[] = (data ?? []).map((row: any) => {
+  const invoices: ExportInvoiceRow[] = (data ?? []).map((row: ExportSourceRow) => {
     const cust = Array.isArray(row.customers) ? row.customers[0] : row.customers
     return {
       invoice_number: row.invoice_number ?? '',

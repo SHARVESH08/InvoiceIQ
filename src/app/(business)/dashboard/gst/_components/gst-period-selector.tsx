@@ -43,7 +43,7 @@ const FY_MONTHS = [
 
 const FY_OPTIONS = ['2025-26', '2024-25', '2023-24', '2022-23']
 
-export function GstPeriodSelector({ companyId, periods, company }: GstPeriodSelectorProps) {
+export function GstPeriodSelector({ companyId, periods, company: _company }: GstPeriodSelectorProps) {
   const [fy, setFy] = useState<string>('2025-26')
   const [period, setPeriod] = useState<string>('04')
 

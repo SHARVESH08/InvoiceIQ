@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import * as XLSX from 'xlsx'
 import Papa from 'papaparse'
 import { ChevronLeft, Download, Loader2 } from 'lucide-react'
@@ -39,7 +38,6 @@ type ParsedRow = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function ImportProductsPage() {
-  const router = useRouter()
   const [rows, setRows] = useState<ParsedRow[]>([])
   const [isImporting, setIsImporting] = useState(false)
 

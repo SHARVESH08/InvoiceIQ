@@ -2,6 +2,7 @@ import 'server-only'
 
 import { Resend } from 'resend'
 import { renderBrandedEmail, escapeHtml } from './template'
+import { resolveFromAddress } from '@/lib/email/sender'
 
 /**
  * EMAIL-01 — Resend email with PDF attachment and payment link.
@@ -33,7 +34,7 @@ export async function sendInvoiceEmail(input: EmailInput): Promise<void> {
   // Instantiate per-call so tests can mock the constructor after module load
   const resend = new Resend(process.env.RESEND_API_KEY!)
 
-  const from = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev'
+  const from = resolveFromAddress()
 
   const invoiceNumber = escapeHtml(input.invoiceNumber)
   const companyName = input.companyName ? escapeHtml(input.companyName) : ''

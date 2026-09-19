@@ -3,6 +3,7 @@ export const runtime = 'nodejs'
 import { createClient } from '@/lib/supabase/server'
 import { buildGstnJson, buildGstnExcel } from '@/lib/gst/gstn-export'
 import type { GstnMeta } from '@/lib/gst/gstn-export'
+import type { Gstr1Sections } from '@/lib/gst/gstr1'
 
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url)
@@ -45,12 +46,12 @@ export async function GET(request: Request): Promise<Response> {
     .single()
 
   const meta: GstnMeta = {
-    gstin: (company as any)?.gstin ?? '',
+    gstin: (company as { gstin: string | null } | null)?.gstin ?? '',
     fy,
     period,
   }
 
-  const sections = (periodRow as any).data
+  const sections = (periodRow as { data: Gstr1Sections }).data
 
   if (format === 'json') {
     const json = buildGstnJson(sections, meta)

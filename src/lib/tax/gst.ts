@@ -1,4 +1,4 @@
-import { validateGstin, GSTIN_REGEX } from '@/lib/gstin'
+import { GSTIN_REGEX } from '@/lib/gstin'
 
 export type TaxType = 'intra' | 'inter'
 

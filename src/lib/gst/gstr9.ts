@@ -1,7 +1,46 @@
+import type { B2bItemDet, B2csEntry } from '@/lib/gst/gstr1'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// These rows come straight out of the gst_periods.data jsonb column, which may
+// hold a partially-filled return saved mid-edit. Every level is therefore
+// optional — that is what the `?? 0` reads below are guarding against, and the
+// types say so rather than hiding it behind `any`.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type PartialB2bEntry = {
+  ctin?: string
+  inv?: Array<{
+    inum?: string
+    idt?: string
+    val?: number
+    pos?: string
+    rchrg?: string
+    inv_typ?: string
+    itms?: Array<{ num?: number; itm_det?: Partial<B2bItemDet> }>
+  }>
+}
+
+type PartialB2csEntry = Partial<Pick<B2csEntry, 'txval' | 'iamt' | 'camt' | 'samt'>>
+
+export interface Gstr1Payload {
+  b2b?: PartialB2bEntry[]
+  b2cl?: PartialB2bEntry[]
+  b2cs?: PartialB2csEntry[]
+  /** Present in stored returns but not part of the Table 4 sum. */
+  cdnr?: unknown[]
+  hsn?: unknown[]
+}
+
+export interface Gstr3bPayload {
+  itc?: { igst?: number; cgst?: number; sgst?: number }
+}
+
+export type GstPeriodPayload = Gstr1Payload & Gstr3bPayload
+
 export interface GstPeriodDataRow {
   period_type: 'GSTR-1' | 'GSTR-3B'
   period: string
-  data: any
+  data: GstPeriodPayload | null
 }
 
 export interface Gstr9Data {
@@ -9,7 +48,7 @@ export interface Gstr9Data {
   table9: { igst: number; cgst: number; sgst: number }
 }
 
-function sumGstr1Sections(sections: any) {
+function sumGstr1Sections(sections: Gstr1Payload) {
   let txval = 0, igst = 0, cgst = 0, sgst = 0
   for (const entry of (sections.b2b ?? [])) {
     for (const inv of (entry.inv ?? [])) {

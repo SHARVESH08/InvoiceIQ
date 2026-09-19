@@ -1,5 +1,11 @@
 import * as XLSX from 'xlsx'
-import type { Gstr1Sections } from '@/lib/gst/gstr1'
+import type {
+  B2bEntry,
+  B2clEntry,
+  B2csEntry,
+  Gstr1Sections,
+  HsnEntry,
+} from '@/lib/gst/gstr1'
 
 export interface GstnMeta {
   gstin: string
@@ -7,13 +13,40 @@ export interface GstnMeta {
   period: string
 }
 
+/**
+ * The b2b/b2cl payload this module emits. Structurally identical to B2bEntry,
+ * but declared separately because buildGstnJson normalises the optional fields
+ * (rchrg, inv_typ, csamt) to concrete defaults — what GSTN requires on upload.
+ */
+export interface GstnB2bEntry extends Omit<B2bEntry, 'inv'> {
+  inv: Array<{
+    inum: string
+    idt: string
+    val: number
+    pos: string
+    rchrg: string
+    inv_typ: string
+    itms: Array<{
+      num: number
+      itm_det: {
+        rt: number
+        txval: number
+        iamt: number
+        camt: number
+        samt: number
+        csamt: number
+      }
+    }>
+  }>
+}
+
 export interface GstnGstr1Json {
   gstin: string
   fp: string
-  b2b: any[]
-  b2cs: any[]
-  b2cl: any[]
-  hsn: { data: any[] }
+  b2b: GstnB2bEntry[]
+  b2cs: B2csEntry[]
+  b2cl: B2clEntry[]
+  hsn: { data: HsnEntry[] }
 }
 
 function toFilingPeriod(fy: string, period: string): string {
@@ -55,7 +88,7 @@ export function buildGstnJson(sections: Gstr1Sections, meta: GstnMeta): GstnGstr
   }
 }
 
-export function buildGstnExcel(sections: Gstr1Sections, meta: GstnMeta): Buffer {
+export function buildGstnExcel(sections: Gstr1Sections, _meta: GstnMeta): Buffer {
   const wb = XLSX.utils.book_new()
 
   const b2bRows = sections.b2b.flatMap((entry) =>

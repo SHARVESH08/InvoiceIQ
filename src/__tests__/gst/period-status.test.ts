@@ -39,7 +39,7 @@ function setupClient(user: object | null = { id: 'u1' }, companyId: string | nul
     from: vi.fn().mockImplementation((table: string) =>
       table === 'invoices' ? invoiceChain : gstChain
     ),
-  } as any)
+  } as unknown as Awaited<ReturnType<typeof createClient>>)
 }
 
 describe('computeGstr1 period status guard [GST-06]', () => {

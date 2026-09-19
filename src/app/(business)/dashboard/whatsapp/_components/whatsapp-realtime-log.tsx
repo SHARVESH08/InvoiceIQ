@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -77,8 +77,6 @@ function getCartTotal(cart: unknown): number {
 
 export function WhatsAppRealtimeLog({ companyId, initialRows }: WhatsAppRealtimeLogProps) {
   const [rows, setRows] = useState<SessionRow[]>(initialRows)
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
   useEffect(() => {
     const supabase = createClient()
 
@@ -96,7 +94,6 @@ export function WhatsAppRealtimeLog({ companyId, initialRows }: WhatsAppRealtime
       .subscribe()
 
     return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
       channel.unsubscribe()
     }
   }, [companyId])

@@ -45,7 +45,7 @@ describe('buildInvoiceExcel', () => {
     const ws = wb.Sheets['Invoices']
     const data = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1 })
 
-    const firstDataRow = data[1] as any[]
+    const firstDataRow = data[1] as unknown[]
     expect(firstDataRow[0]).toBe('INV/2026/0001')
   })
 

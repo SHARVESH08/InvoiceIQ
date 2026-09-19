@@ -5,6 +5,13 @@ import { parseGstr2bExcel } from '@/lib/gst/gstr2b-parser'
 import { reconcile2b } from '@/lib/gst/gstr2b-reconcile'
 import type { PurchaseOrderRow } from '@/lib/gst/gstr2b-reconcile'
 
+/** purchase_orders joined to suppliers; PostgREST may embed one or many. */
+type PoWithSupplier = {
+  po_number: string | null
+  total_amount: number | string | null
+  suppliers: { gstin: string | null } | { gstin: string | null }[] | null
+}
+
 export async function POST(request: Request): Promise<Response> {
   const supabase = await createClient()
   const { data: companyId } = await supabase.rpc('get_company_id')
@@ -34,8 +41,9 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const buffer = await file.arrayBuffer()
     parsed = parseGstr2bExcel(buffer)
-  } catch (err: any) {
-    return Response.json({ error: err?.message ?? 'Could not parse GSTR-2B Excel' }, { status: 422 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : undefined
+    return Response.json({ error: message ?? 'Could not parse GSTR-2B Excel' }, { status: 422 })
   }
 
   // Join purchase_orders to suppliers to get supplier_gstin (D-06)
@@ -49,11 +57,13 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: poError.message }, { status: 500 })
   }
 
-  const flatPoRows: PurchaseOrderRow[] = ((poRows ?? []) as any[]).map((row) => {
+  const flatPoRows: PurchaseOrderRow[] = ((poRows ?? []) as PoWithSupplier[]).map((row) => {
     const supplier = Array.isArray(row.suppliers) ? row.suppliers[0] : row.suppliers
     return {
       supplier_gstin: supplier?.gstin ?? '',
-      po_number: row.po_number,
+      // po_number is nullable in the schema (drafts have none); the reconciler
+      // matches on it as a string.
+      po_number: row.po_number ?? '',
       total_amount: Number(row.total_amount),
     }
   })

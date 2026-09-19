@@ -8,6 +8,7 @@ import {
   type CreatePOInput,
 } from '@/lib/schemas/purchase-order'
 import { requirePermission } from '@/lib/auth/require-permission'
+import { resolveFromAddress } from '@/lib/email/sender'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -229,8 +230,7 @@ export async function createPurchaseOrder(
 
       if (adminEmail) {
         const resend = new Resend(process.env.RESEND_API_KEY!)
-        const from =
-          process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev'
+        const from = resolveFromAddress()
 
         await resend.emails.send({
           from,

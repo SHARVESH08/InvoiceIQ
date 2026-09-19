@@ -68,14 +68,6 @@ const WIDGET_ITEM: CartItem = {
   total: 100,
 }
 
-const GADGET_ITEM: CartItem = {
-  product_id: 'prod-002',
-  name: 'Gadget',
-  qty: 1,
-  unit_price: 200,
-  total: 200,
-}
-
 // ---------------------------------------------------------------------------
 // parseStart
 // ---------------------------------------------------------------------------

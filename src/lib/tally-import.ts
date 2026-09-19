@@ -77,7 +77,11 @@ export type ParseTallyCsvResult = {
  */
 export function parseTallyCsv(input: File | string): Promise<ParseTallyCsvResult> {
   return new Promise((resolve) => {
-    Papa.parse<Record<string, string>>(input as any, {
+    // Papa.parse overloads File and string separately, so narrow rather than
+    // casting the input — the two branches share one config object.
+    const config: Papa.ParseConfig<Record<string, string>> & {
+      complete: (result: Papa.ParseResult<Record<string, string>>) => void
+    } = {
       header: true,
       skipEmptyLines: true,
       complete: (result) => {
@@ -100,6 +104,15 @@ export function parseTallyCsv(input: File | string): Promise<ParseTallyCsvResult
 
         resolve({ valid, invalid })
       },
-    })
+    }
+
+    if (typeof input === 'string') {
+      Papa.parse<Record<string, string>>(input, config)
+    } else {
+      Papa.parse<Record<string, string>>(input, config as Papa.ParseLocalConfig<
+        Record<string, string>,
+        File
+      >)
+    }
   })
 }

@@ -19,12 +19,19 @@ interface ItcState {
   sgst: string
 }
 
+/** Output-tax totals returned in saveGstr3b's `data.outward`. */
+interface OutputTax {
+  igst: number
+  cgst: number
+  sgst: number
+}
+
 export function Gstr3bTab({ companyId: _companyId, fy, period, status }: Gstr3bTabProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [itc, setItc] = useState<ItcState>({ igst: '0', cgst: '0', sgst: '0' })
-  const [outputTax, setOutputTax] = useState<{ igst: number; cgst: number; sgst: number } | null>(null)
+  const [outputTax, setOutputTax] = useState<OutputTax | null>(null)
 
   const filed = status === 'filed'
 
@@ -52,7 +59,7 @@ export function Gstr3bTab({ companyId: _companyId, fy, period, status }: Gstr3bT
         setError(result.error)
       } else {
         setSaved(true)
-        const d = (result.data as any)
+        const d = result.data as { outward?: OutputTax } | undefined
         if (d?.outward) setOutputTax(d.outward)
       }
       setLoading(false)

@@ -81,7 +81,7 @@ function StatusBadge({ status }: { status: string }) {
 export function TransfersTable({
   pendingTransfers,
   historyTransfers,
-  currentUserId,
+  currentUserId: _currentUserId,
   tab,
   created,
 }: Props) {

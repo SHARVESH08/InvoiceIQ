@@ -22,7 +22,7 @@ interface GstrTabsProps {
   periods: PeriodRow[]
 }
 
-export function GstrTabs({ companyId, fy, period, status, periods }: GstrTabsProps) {
+export function GstrTabs({ companyId, fy, period, status: _status, periods }: GstrTabsProps) {
   const getStatus = (periodType: string, p: string = period) =>
     periods.find((r) => r.fy === fy && r.period === p && r.period_type === periodType)?.status ?? 'draft'
 

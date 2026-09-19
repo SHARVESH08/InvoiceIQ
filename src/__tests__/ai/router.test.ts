@@ -4,6 +4,30 @@
  */
 
 import { classifyIntent, normalize } from '@/lib/ai/router'
+import type { Intent } from '@/lib/ai/router'
+
+/**
+ * The payload fields carried by the Intent variants that have them. Assertions
+ * below check one field at a time, so exposing them all as optional is more
+ * useful than narrowing to a single variant per test.
+ */
+type IntentPayload = Partial<{
+  product: string
+  reference: string
+  period: string
+  customer: string
+}>
+
+/**
+ * Strips the discriminant, leaving just the payload. Destructuring keeps this
+ * fully type-checked — no cast, so a renamed field breaks the build here
+ * rather than silently returning undefined at runtime.
+ */
+function payload(intent: Intent | null): IntentPayload {
+  if (!intent) return {}
+  const { type: _type, ...rest } = intent
+  return rest
+}
 
 describe('normalize', () => {
   it('lowercases input', () => {
@@ -27,37 +51,37 @@ describe('classifyIntent — stock queries', () => {
   it('matches "how many X do I have" [AI-01]', () => {
     const r = classifyIntent('how many rice bags do I have')
     expect(r?.type).toBe('stock_query')
-    expect((r as any)?.product).toMatch(/rice/i)
+    expect(payload(r)?.product).toMatch(/rice/i)
   })
 
   it('matches "stock of X" [AI-01]', () => {
     const r = classifyIntent('stock of basmati rice')
     expect(r?.type).toBe('stock_query')
-    expect((r as any)?.product).toMatch(/basmati rice/i)
+    expect(payload(r)?.product).toMatch(/basmati rice/i)
   })
 
   it('matches "units of X left" [AI-01]', () => {
     const r = classifyIntent('units of sugar left')
     expect(r?.type).toBe('stock_query')
-    expect((r as any)?.product).toMatch(/sugar/i)
+    expect(payload(r)?.product).toMatch(/sugar/i)
   })
 
   it('matches "qty of X available" [AI-01]', () => {
     const r = classifyIntent('qty of wheat flour available')
     expect(r?.type).toBe('stock_query')
-    expect((r as any)?.product).toMatch(/wheat flour/i)
+    expect(payload(r)?.product).toMatch(/wheat flour/i)
   })
 
   it('matches "inventory of X" [AI-01]', () => {
     const r = classifyIntent('inventory of salt')
     expect(r?.type).toBe('stock_query')
-    expect((r as any)?.product).toMatch(/salt/i)
+    expect(payload(r)?.product).toMatch(/salt/i)
   })
 
   it('matches "do I have X in stock" [AI-01]', () => {
     const r = classifyIntent('do I have any mustard oil in stock')
     expect(r?.type).toBe('stock_query')
-    expect((r as any)?.product).toMatch(/mustard oil/i)
+    expect(payload(r)?.product).toMatch(/mustard oil/i)
   })
 })
 
@@ -77,13 +101,13 @@ describe('classifyIntent — invoice status', () => {
   it('matches specific invoice reference [AI-01]', () => {
     const r = classifyIntent('status of invoice INV-2025-26-0042')
     expect(r?.type).toBe('invoice_status')
-    expect((r as any)?.reference).toMatch(/INV-2025-26-0042/i)
+    expect(payload(r)?.reference).toMatch(/INV-2025-26-0042/i)
   })
 
   it('matches short invoice number [AI-01]', () => {
     const r = classifyIntent('where is invoice 0042')
     expect(r?.type).toBe('invoice_status')
-    expect((r as any)?.reference).toMatch(/0042/)
+    expect(payload(r)?.reference).toMatch(/0042/)
   })
 })
 
@@ -91,31 +115,31 @@ describe('classifyIntent — GST deadlines', () => {
   it('matches "GSTR-1 filing deadline" [AI-01]', () => {
     const r = classifyIntent('GSTR-1 filing deadline')
     expect(r?.type).toBe('gst_deadline')
-    expect((r as any)?.period).toBe('1')
+    expect(payload(r)?.period).toBe('1')
   })
 
   it('matches "GSTR-3B due date" [AI-01]', () => {
     const r = classifyIntent('GSTR-3B due date')
     expect(r?.type).toBe('gst_deadline')
-    expect((r as any)?.period).toBe('3b')
+    expect(payload(r)?.period).toBe('3b')
   })
 
   it('matches "GSTR-9 when is it due" [AI-01]', () => {
     const r = classifyIntent('GSTR-9 when is it due')
     expect(r?.type).toBe('gst_deadline')
-    expect((r as any)?.period).toBe('9')
+    expect(payload(r)?.period).toBe('9')
   })
 
   it('matches lowercase gst-1 [AI-01]', () => {
     const r = classifyIntent('when is gst-1 due')
     expect(r?.type).toBe('gst_deadline')
-    expect((r as any)?.period).toBe('1')
+    expect(payload(r)?.period).toBe('1')
   })
 
   it('defaults to GSTR-1 for generic "gst filing deadline" [AI-01]', () => {
     const r = classifyIntent('gst filing deadline')
     expect(r?.type).toBe('gst_deadline')
-    expect((r as any)?.period).toBe('1')
+    expect(payload(r)?.period).toBe('1')
   })
 })
 
@@ -175,13 +199,13 @@ describe('classifyIntent — payments', () => {
   it('matches customer balance query [AI-01]', () => {
     const r = classifyIntent('customer balance of Sharma Traders')
     expect(r?.type).toBe('customer_balance')
-    expect((r as any)?.customer).toMatch(/sharma traders/i)
+    expect(payload(r)?.customer).toMatch(/sharma traders/i)
   })
 
   it('matches "balance for X" [AI-01]', () => {
     const r = classifyIntent('balance for Raj Enterprises')
     expect(r?.type).toBe('customer_balance')
-    expect((r as any)?.customer).toMatch(/raj enterprises/i)
+    expect(payload(r)?.customer).toMatch(/raj enterprises/i)
   })
 })
 

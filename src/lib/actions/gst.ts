@@ -2,9 +2,10 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { groupInvoicesIntoGstr1 } from '@/lib/gst/gstr1'
-import type { InvoiceRow, InvoiceItemRow } from '@/lib/gst/gstr1'
+import type { InvoiceRow, InvoiceItemRow, Gstr1Sections } from '@/lib/gst/gstr1'
 import { computeGstr3b } from '@/lib/gst/gstr3b'
 import { aggregateMonthlyForGstr9 } from '@/lib/gst/gstr9'
+import type { GstPeriodDataRow } from '@/lib/gst/gstr9'
 import { requirePermission } from '@/lib/auth/require-permission'
 
 type ActionResult<T = unknown> = { error: string } | { success: true; data?: T }
@@ -58,6 +59,37 @@ async function checkFiledStatus(
 
 // ─── Server Actions ───────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Shape of `invoices` joined with its customer and line items. PostgREST
+// returns an embedded relation as either an object or an array depending on the
+// cardinality it infers, so both joins are typed as a union and normalised at
+// the use site. Numerics arrive as strings over the wire, hence `number | string`.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type JoinedCustomer = { gstin: string | null; state_code: string | null }
+
+type JoinedInvoiceItem = {
+  hsn_code: string | null
+  tax_rate: number | string | null
+  taxable_amount: number | string | null
+  cgst_amount: number | string | null
+  sgst_amount: number | string | null
+  igst_amount: number | string | null
+}
+
+type Gstr1SourceInvoice = {
+  id: string
+  invoice_number: string | null
+  invoice_date: string
+  taxable_amount: number | string
+  cgst_amount: number | string
+  sgst_amount: number | string
+  igst_amount: number | string
+  state_code: string | null
+  customers: JoinedCustomer | JoinedCustomer[] | null
+  invoice_items: JoinedInvoiceItem | JoinedInvoiceItem[] | null
+}
+
 export async function computeGstr1(fy: string, period: string): Promise<ActionResult> {
   const auth = await getAuthContext()
   if ('error' in auth) return { error: auth.error }
@@ -77,7 +109,7 @@ export async function computeGstr1(fy: string, period: string): Promise<ActionRe
 
   if (fetchError) return { error: fetchError.message }
 
-  const rows = (rawRows ?? []) as any[]
+  const rows = (rawRows ?? []) as Gstr1SourceInvoice[]
 
   // Flatten customer gstin onto each row for groupInvoicesIntoGstr1 (Pitfall 5)
   const invoices: InvoiceRow[] = rows.map((inv) => {
@@ -95,7 +127,10 @@ export async function computeGstr1(fy: string, period: string): Promise<ActionRe
         : 'B2CS'
     return {
       id: inv.id,
-      invoice_number: inv.invoice_number,
+      // invoice_number is nullable in the schema (drafts have none) while
+      // InvoiceRow requires a string. The previous `any` cast let a null
+      // through silently; coerce it instead.
+      invoice_number: inv.invoice_number ?? '',
       invoice_date: inv.invoice_date,
       invoice_type: gstType,
       taxable_amount: Number(inv.taxable_amount),
@@ -113,7 +148,7 @@ export async function computeGstr1(fy: string, period: string): Promise<ActionRe
       : inv.invoice_items
         ? [inv.invoice_items]
         : []
-    return invItems.map((item: any) => ({
+    return invItems.map((item: JoinedInvoiceItem) => ({
       invoice_id: inv.id,
       hsn_code: item.hsn_code ?? '',
       tax_rate: Number(item.tax_rate ?? 0),
@@ -163,7 +198,8 @@ export async function saveGstr3b(
 
   if (readError) return { error: readError.message }
 
-  const sections = (gstr1Row as any)?.data ?? { b2b: [], b2cs: [], b2cl: [], cdnr: [], hsn: [] }
+  const sections =
+    (gstr1Row?.data as Gstr1Sections | null) ?? { b2b: [], b2cs: [], b2cl: [], cdnr: [], hsn: [] }
   const result = computeGstr3b(sections, manualItc)
 
   const { error: upsertError } = await supabase.from('gst_period_data').upsert(
@@ -189,7 +225,7 @@ export async function computeGstr9(fy: string): Promise<ActionResult> {
 
   if (fetchError) return { error: fetchError.message }
 
-  const result = aggregateMonthlyForGstr9((rows ?? []) as any[])
+  const result = aggregateMonthlyForGstr9((rows ?? []) as GstPeriodDataRow[])
 
   const { error: upsertError } = await supabase.from('gst_period_data').upsert(
     { company_id: companyId, period_type: 'GSTR-9', fy, period: 'annual', status: 'draft', data: result },

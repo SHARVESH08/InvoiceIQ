@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { selectOverdueForReminder, type OverdueInvoice } from '@/lib/cron/overdue-reminders'
 import { renderBrandedEmail, escapeHtml, emailBaseUrl } from '@/lib/email/template'
+import { resolveFromAddress } from '@/lib/email/sender'
 
 export const runtime = 'nodejs'
 
@@ -36,6 +37,18 @@ export async function POST(req: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
     const resend = new Resend(process.env.RESEND_API_KEY)
+
+    // Resolve the sender ONCE, before any sending begins. It cannot vary per
+    // message, and it throws when the sandbox sender is configured in
+    // production — failing here means nothing was half-sent.
+    let fromAddress: string
+    try {
+      fromAddress = resolveFromAddress()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Email sender is not configured'
+      console.error(`[cron] ${message}`)
+      return Response.json({ error: message }, { status: 500 })
+    }
     const today = new Date().toISOString().split('T')[0]
 
     // Fetch candidate invoices: unpaid/overdue with customer emails
@@ -141,7 +154,7 @@ export async function POST(req: NextRequest) {
       })
 
       const { error: emailError } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL!,
+        from: fromAddress,
         to: invoice.customer_email!,
         subject: `Payment reminder: Invoice ${row.invoice_number} overdue by ${day} days`,
         html,
